@@ -1,0 +1,458 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "FindMyLaptop - Discover Best Deals Across Retailers";
+}
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    brand: {
+                        50: '#f0f7ff',
+                        100: '#e0effe',
+                        500: '#2563eb',
+                        600: '#1d4ed8',
+                        700: '#1e40af',
+                        900: '#1e3a8a',
+                    },
+                    sharaf: '#e11d48',
+                    jumbo: '#0284c7',
+                    emax: '#d97706',
+                },
+                fontFamily: {
+                    sans: ['Inter', 'sans-serif'],
+                }
+            }
+        }
+    }
+</script>
+
+<style>
+    .glass-header {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+    }
+
+    .skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: skeleton-loading 1.5s infinite ease-in-out;
+    }
+
+    @@keyframes skeleton-loading {
+        0% {
+            background-position: 200% 0;
+        }
+
+        100% {
+            background-position: -200% 0;
+        }
+    }
+
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>
+
+<!-- Sticky Glass Header -->
+<header class="sticky top-0 z-40 glass-header border-b border-slate-200/80 shadow-sm transition-all duration-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg sm:text-xl tracking-tight text-slate-900 leading-none">FindMy<span class="text-blue-600">Laptop</span></h1>
+                <p class="text-[10px] text-slate-500 font-medium tracking-wide">COMPARE UAE RETAILERS</p>
+            </div>
+        </div>
+
+        <div id="statsBadge" class="hidden sm:flex items-center space-x-2 text-xs font-medium text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
+            <span id="cachedStatusDot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+            <span id="statsText">Live Cross-Retailer Search</span>
+        </div>
+    </div>
+</header>
+
+<!-- Hero / Filter Section -->
+<section class="bg-white border-b border-slate-200 shadow-sm">
+    <div class="max-w-3xl mx-auto px-4 py-6 sm:py-8 text-center">
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Find the Best Laptop Within Your Budget
+        </h2>
+        <p class="mt-2 text-xs sm:text-sm text-slate-500 max-w-lg mx-auto">
+            Compare real-time options across <span class="text-rose-600 font-semibold">SharafDG</span>, <span class="text-sky-600 font-semibold">Jumbo</span>, and <span class="text-amber-600 font-semibold">Emax</span> instantly.
+        </p>
+
+        <!-- Search Form -->
+        <form id="searchForm" onsubmit="handleSearch(event)" class="mt-6 max-w-md mx-auto">
+            <div class="relative flex items-center">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 font-semibold text-sm">
+                    AED
+                </div>
+                <input type="number"
+                       id="maxPriceInput"
+                       name="maxPrice"
+                       value="@(Model.MaxPrice ?? 4000)"
+                       placeholder="Enter Max Price (e.g. 3500)"
+                       min="500"
+                       max="25000"
+                       step="100"
+                       required
+                       class="block w-full pl-14 pr-28 py-3.5 text-slate-900 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-medium transition shadow-inner" />
+                <button type="submit"
+                        class="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold text-xs sm:text-sm rounded-lg shadow transition-all duration-150 flex items-center space-x-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <span>Filter</span>
+                </button>
+            </div>
+        </form>
+
+        <!-- Quick Filter Chips -->
+        <div class="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs">
+            <span class="text-slate-400 font-medium">Quick Budget:</span>
+            <button onclick="setBudget(2500)" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-600 transition border border-slate-200">AED 2,500</button>
+            <button onclick="setBudget(3500)" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-600 transition border border-slate-200">AED 3,500</button>
+            <button onclick="setBudget(5000)" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-600 transition border border-slate-200">AED 5,000</button>
+            <button onclick="setBudget(7500)" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-600 transition border border-slate-200">AED 7,500</button>
+        </div>
+    </div>
+</section>
+
+<!-- Main Content Area -->
+<main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- Active Filter Indicator -->
+    <div id="filterSummaryBar" class="hidden mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm gap-2">
+        <div>
+            <span class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Active Filter</span>
+            <p id="summaryText" class="text-sm font-semibold text-slate-800"></p>
+        </div>
+        <div class="flex items-center space-x-2">
+            <span id="cacheBadge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                Cached in Session
+            </span>
+            <button onclick="clearCacheAndReload()" class="text-xs text-slate-500 hover:text-rose-600 underline font-medium">
+                Reset Cache
+            </button>
+        </div>
+    </div>
+
+    <!-- Product Grid Container -->
+    <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"></div>
+
+    <!-- Infinite Scroll Target Observer Trigger -->
+    <div id="infiniteScrollTrigger" class="py-8 flex flex-col items-center justify-center space-y-2">
+        <div id="scrollSpinner" class="hidden">
+            <div class="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+        <p id="scrollMessage" class="text-xs text-slate-400 font-medium text-center"></p>
+    </div>
+</main>
+
+<script>
+    // Injected directly from C# server model on initial rendering
+    let rawInitialData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Products));
+    let allFilteredProducts = [];
+    let currentPage = 1;
+    const pageSize = 8;
+    let isLoading = false;
+    let observer = null;
+    let currentMaxPrice = parseFloat(document.getElementById('maxPriceInput').value) || 4000;
+
+    const RETAILERS = {
+        'SharafDG': {
+            name: 'SharafDG',
+            badgeClass: 'bg-rose-600 text-white',
+            borderHover: 'hover:border-rose-300',
+            btnColor: 'bg-rose-50 text-rose-700 hover:bg-rose-100'
+        },
+        'Jumbo': {
+            name: 'Jumbo',
+            badgeClass: 'bg-sky-600 text-white',
+            borderHover: 'hover:border-sky-300',
+            btnColor: 'bg-sky-50 text-sky-700 hover:bg-sky-100'
+        },
+        'Emax': {
+            name: 'Emax',
+            badgeClass: 'bg-amber-600 text-white',
+            borderHover: 'hover:border-amber-300',
+            btnColor: 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+        }
+    };
+
+    // Helper to safely read price regardless of JSON Casing (price vs Price)
+    function getProductPrice(product) {
+        if (!product) return 0;
+        const val = product.price !== undefined ? product.price : product.Price;
+        return parseFloat(val) || 0;
+    }
+
+    // Filters out price <= 0 and sorts products ascending
+    function filterAndSortProducts(products, maxPrice) {
+        if (!products || !Array.isArray(products)) return [];
+
+        return products
+            .filter(p => {
+                const price = getProductPrice(p);
+                return price > 0 && price <= maxPrice;
+            })
+            .sort((a, b) => getProductPrice(a) - getProductPrice(b));
+    }
+
+    async function handleSearch(event) {
+        if (event) event.preventDefault();
+
+        const priceInput = document.getElementById('maxPriceInput');
+        const maxPrice = parseFloat(priceInput.value);
+
+        if (!maxPrice || maxPrice <= 0) return;
+
+        currentMaxPrice = maxPrice;
+        const cacheKey = `findmylaptop_results_${maxPrice}`;
+        const cachedData = sessionStorage.getItem(cacheKey);
+
+        resetGrid();
+        showSkeletons();
+
+        if (cachedData) {
+            setTimeout(() => {
+                allFilteredProducts = filterAndSortProducts(JSON.parse(cachedData), maxPrice);
+                updateSummaryBar(maxPrice, true);
+                renderNextPage();
+            }, 250);
+        } else {
+            updateSummaryBar(maxPrice, false);
+
+            try {
+                const response = await fetch(`?handler=Search&maxPrice=${maxPrice}`);
+                if (!response.ok) throw new Error("Server response failed");
+
+                const rawProducts = await response.json();
+                allFilteredProducts = filterAndSortProducts(rawProducts, maxPrice);
+
+                sessionStorage.setItem(cacheKey, JSON.stringify(allFilteredProducts));
+                renderNextPage();
+            } catch (err) {
+                console.error("Error fetching laptops from server:", err);
+                showError("Failed to fetch products from retailers. Please try again.");
+            }
+        }
+    }
+
+    function setBudget(amount) {
+        document.getElementById('maxPriceInput').value = amount;
+        handleSearch();
+    }
+
+    function resetGrid() {
+        currentPage = 1;
+        allFilteredProducts = [];
+        document.getElementById('productGrid').innerHTML = '';
+        document.getElementById('scrollMessage').textContent = '';
+    }
+
+    function showSkeletons() {
+        const grid = document.getElementById('productGrid');
+        grid.innerHTML = '';
+        for (let i = 0; i < 8; i++) {
+            const skel = document.createElement('div');
+            skel.className = 'bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-3';
+            skel.innerHTML = `
+                    <div class="h-4 skeleton rounded w-1/3"></div>
+                    <div class="h-36 skeleton rounded-lg"></div>
+                    <div class="h-4 skeleton rounded w-3/4"></div>
+                    <div class="h-3 skeleton rounded w-1/2"></div>
+                    <div class="pt-2 flex justify-between items-center">
+                        <div class="h-5 skeleton rounded w-1/3"></div>
+                        <div class="h-8 skeleton rounded-lg w-1/4"></div>
+                    </div>
+                `;
+            grid.appendChild(skel);
+        }
+    }
+
+    function updateSummaryBar(price, isCached) {
+        const bar = document.getElementById('filterSummaryBar');
+        const summaryText = document.getElementById('summaryText');
+        const cacheBadge = document.getElementById('cacheBadge');
+
+        bar.classList.remove('hidden');
+        summaryText.textContent = `Laptops under AED ${price.toLocaleString()}`;
+
+        if (isCached) {
+            cacheBadge.classList.remove('hidden');
+            cacheBadge.textContent = 'Loaded from Session Storage';
+        } else {
+            cacheBadge.classList.add('hidden');
+        }
+    }
+
+    function renderNextPage() {
+        const grid = document.getElementById('productGrid');
+        const spinner = document.getElementById('scrollSpinner');
+        const message = document.getElementById('scrollMessage');
+
+        if (currentPage === 1) grid.innerHTML = '';
+
+        if (!allFilteredProducts || allFilteredProducts.length === 0) {
+            grid.innerHTML = `
+                    <div class="col-span-full py-12 text-center">
+                        <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <h3 class="text-base font-bold text-slate-800">No Laptops Found</h3>
+                        <p class="text-xs text-slate-500 mt-1">Try increasing your budget limit above.</p>
+                    </div>
+                `;
+            spinner.classList.add('hidden');
+            message.textContent = '';
+            return;
+        }
+
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const pageItems = allFilteredProducts.slice(startIndex, endIndex);
+
+        if (pageItems.length === 0) {
+            spinner.classList.add('hidden');
+            message.textContent = `Showing all ${allFilteredProducts.length} matching laptops.`;
+            return;
+        }
+
+        pageItems.forEach(product => {
+            const card = createProductCard(product);
+            grid.appendChild(card);
+        });
+
+        isLoading = false;
+        spinner.classList.add('hidden');
+
+        if (endIndex >= allFilteredProducts.length) {
+            message.textContent = `Showing all ${allFilteredProducts.length} matching laptops.`;
+        } else {
+            message.textContent = 'Scroll for more options...';
+            setupIntersectionObserver();
+        }
+    }
+
+    function createProductCard(product) {
+    // Read property values safely across both PascalCase and camelCase
+    const title = product.Name || product.name || 'Laptop';
+    const brand = product.Brand || product.brand || 'Brand';
+    const rawPrice = getProductPrice(product);
+    const priceFormatted = rawPrice.toLocaleString();
+    const url = product.Url || product.url || '#';
+    const retailer = product.Retailer || product.retailer || 'Store';
+    const retailerImage = product.RetailerImage || product.retailerImage;
+
+    const retailerKey = (retailer && RETAILERS[retailer]) ? retailer : 'Sharafdg';
+    const retailerConfig = RETAILERS[retailerKey];
+
+    // Check if the current retailer is SharafDG (case-insensitive check)
+    const isSharafDG = retailer.toString().trim().toLowerCase().includes('sharaf');
+
+    // Use dummy blob URL if SharafDG, otherwise use product image URL or default placeholder
+        const sharafDgDummyUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv9xvEsNe-LtVTOl6Yvcf_yNshKUEDaZ9kYgAoK5jtVw&s';
+    const imageUrl = isSharafDG 
+        ? sharafDgDummyUrl 
+        : (product.ImageUrl || product.imageUrl || 'https://via.placeholder.com/300');
+
+    // Image container rendered for all products using the determined imageUrl
+    const imageContainerHtml = `
+        <div class="h-36 bg-slate-50 rounded-lg p-2 mb-3 flex items-center justify-center overflow-hidden">
+            <a href="${url}" target="_blank" rel="noopener noreferrer" class="w-full h-full flex items-center justify-center">
+                <img src="${imageUrl}" alt="${title}" class="max-h-full max-w-full object-contain group-hover:scale-105 transition duration-300" referrerpolicy="no-referrer" loading="lazy"/>
+            </a>
+        </div>
+    `;
+
+    const visitStoreButtonHtml = `
+        <a href="${url}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-lg text-xs font-semibold ${retailerConfig.btnColor} transition flex items-center space-x-1">
+            <span>Visit Store</span>
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+        </a>
+    `;
+
+    const card = document.createElement('div');
+    card.className = `bg-white rounded-xl border border-slate-200/90 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden group ${retailerConfig.borderHover}`;
+
+    card.innerHTML = `
+        <div class="p-4 flex-1 flex flex-col">
+            <div class="flex items-center justify-between mb-2">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${retailerConfig.badgeClass}">
+                    ${retailer}
+                </span>
+                ${retailerImage ? `<img src="${retailerImage}" alt="${retailer}" class="h-4 max-w-[60px] object-contain" />` : ''}
+            </div>
+            ${imageContainerHtml}
+            <a href="${url}" target="_blank" rel="noopener noreferrer" class="text-xs sm:text-sm font-bold text-slate-800 line-clamp-2 mb-2 group-hover:text-blue-600 transition" title="${title}">
+                ${title}
+            </a>
+            <div class="mt-auto pt-2 flex items-center justify-between text-[11px] text-slate-500 border-t border-slate-100">
+                <span class="font-medium text-slate-400">Brand:</span>
+                <span class="font-semibold text-slate-700">${brand}</span>
+            </div>
+        </div>
+        <div class="px-4 py-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between">
+            <div>
+                <span class="text-[10px] text-slate-400 block font-medium">Price</span>
+                <span class="text-sm sm:text-base font-extrabold text-slate-900">AED ${priceFormatted}</span>
+            </div>
+            ${visitStoreButtonHtml}
+        </div>
+    `;
+
+    return card;
+}
+
+    function setupIntersectionObserver() {
+        if (observer) observer.disconnect();
+
+        const trigger = document.getElementById('infiniteScrollTrigger');
+
+        observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && !isLoading) {
+                const startIndex = currentPage * pageSize;
+                if (startIndex < allFilteredProducts.length) {
+                    isLoading = true;
+                    document.getElementById('scrollSpinner').classList.remove('hidden');
+
+                    setTimeout(() => {
+                        currentPage++;
+                        renderNextPage();
+                    }, 300);
+                }
+            }
+        }, { rootMargin: '100px' });
+
+        observer.observe(trigger);
+    }
+
+    function clearCacheAndReload() {
+        sessionStorage.clear();
+        handleSearch();
+    }
+
+    function showError(msg) {
+        const grid = document.getElementById('productGrid');
+        grid.innerHTML = `<div class="col-span-full py-8 text-center text-rose-600 font-medium">${msg}</div>`;
+    }
+
+    // Initialize dataset and sort ascending
+    window.onload = function() {
+        allFilteredProducts = filterAndSortProducts(rawInitialData, currentMaxPrice);
+        updateSummaryBar(currentMaxPrice, false);
+        renderNextPage();
+    };
+</script>
