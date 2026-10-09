@@ -3,6 +3,10 @@
 @{
     ViewData["Title"] = "FindMyLaptop - Discover Best Deals Across Retailers";
 }
+
+<!-- Lock mobile viewport scale & disable pinch zoom -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no" />
+
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
     tailwind.config = {
@@ -30,6 +34,13 @@
 </script>
 
 <style>
+    /* Prevent horizontal page overflow & smooth scrolling */
+    html, body {
+        overflow-x: hidden;
+        touch-action: manipulation;
+        -webkit-text-size-adjust: 100%;
+    }
+
     .glass-header {
         background: rgba(255, 255, 255, 0.85);
         backdrop-filter: blur(12px);
@@ -80,14 +91,12 @@
             <span id="statsText">Live Cross-Retailer Search</span>
         </div>
     </div>
-</header
-
-<p>AAAAAAAAA</p>
+</header>
 
 <!-- Hero / Filter Section -->
 <section class="bg-white border-b border-slate-200 shadow-sm">
     <div class="max-w-3xl mx-auto px-4 py-6 sm:py-8 text-center">
-        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+        <h2 class="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Find the Best Laptop Within Your Budget
         </h2>
         <p class="mt-2 text-xs sm:text-sm text-slate-500 max-w-lg mx-auto">
@@ -100,6 +109,7 @@
                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 font-semibold text-sm">
                     AED
                 </div>
+                <!-- Set text-base (16px) on mobile to stop iOS Safari input focus auto-zoom -->
                 <input type="number"
                        id="maxPriceInput"
                        name="maxPrice"
@@ -109,7 +119,7 @@
                        max="25000"
                        step="100"
                        required
-                       class="block w-full pl-14 pr-28 py-3.5 text-slate-900 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-sm font-medium transition shadow-inner" />
+                       class="block w-full pl-14 pr-28 py-3.5 text-slate-900 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-base sm:text-sm font-medium transition shadow-inner appearance-none" />
                 <button type="submit"
                         class="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold text-xs sm:text-sm rounded-lg shadow transition-all duration-150 flex items-center space-x-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -122,11 +132,11 @@
 
         <!-- Quick Filter Chips -->
         <div class="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs">
-            <span class="text-slate-400 font-medium">Quick Budget:</span>
-            <button onclick="setBudget(2500)" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-600 transition border border-slate-200">AED 2,500</button>
-            <button onclick="setBudget(3500)" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-600 transition border border-slate-200">AED 3,500</button>
-            <button onclick="setBudget(5000)" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-600 transition border border-slate-200">AED 5,000</button>
-            <button onclick="setBudget(7500)" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-600 transition border border-slate-200">AED 7,500</button>
+            <span class="text-slate-400 font-medium w-full sm:w-auto mb-1 sm:mb-0">Quick Budget:</span>
+            <button onclick="setBudget(2500)" class="px-2.5 py-1.5 rounded-md bg-slate-100 active:bg-blue-100 hover:bg-blue-50 hover:text-blue-600 text-slate-600 transition border border-slate-200">AED 2,500</button>
+            <button onclick="setBudget(3500)" class="px-2.5 py-1.5 rounded-md bg-slate-100 active:bg-blue-100 hover:bg-blue-50 hover:text-blue-600 text-slate-600 transition border border-slate-200">AED 3,500</button>
+            <button onclick="setBudget(5000)" class="px-2.5 py-1.5 rounded-md bg-slate-100 active:bg-blue-100 hover:bg-blue-50 hover:text-blue-600 text-slate-600 transition border border-slate-200">AED 5,000</button>
+            <button onclick="setBudget(7500)" class="px-2.5 py-1.5 rounded-md bg-slate-100 active:bg-blue-100 hover:bg-blue-50 hover:text-blue-600 text-slate-600 transition border border-slate-200">AED 7,500</button>
         </div>
     </div>
 </section>
@@ -150,7 +160,7 @@
         </div>
     </div>
 
-    <!-- Product Grid Container: 1 column on mobile, 2 on tablet, 3/4 on desktop -->
+    <!-- Product Grid Container -->
     <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"></div>
 
     <!-- Infinite Scroll Target Observer Trigger -->
@@ -163,55 +173,52 @@
 </main>
 
 <script>
-    // Injected directly from C# server model on initial rendering
     let rawInitialData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Products));
     let allFilteredProducts = [];
     let currentPage = 1;
 
-    // Dynamically adjust page size: 1 item per infinite scroll load on mobile screens (< 640px)
     function getPageSize() {
         return window.innerWidth < 640 ? 1 : 8;
-        }
+    }
 
-       let pageSize = getPageSize();
+        let pageSize = getPageSize();
     let isLoading = false;
-    let observer = null;
-    let currentMaxPrice = parseFloat(document.getElementById('maxPriceInput').value) || 4000;
+       let observer = null;
+        let currentMaxPrice = parseFloat(document.getElementById('maxPriceInput').value) || 4000;
 
-       // Listen for screen resize events to adjust infinite scroll batch size
-    window.addEventListener('resize', () => {
-           pageSize = getPageSize();
+       window.addEventListener('resize', () => {
+        pageSize = getPageSize();
         });
 
-    const RETAILERS = {
+           const RETAILERS = {
         'SharafDG': {
             name: 'SharafDG',
             badgeClass: 'bg-rose-600 text-white',
             borderHover: 'hover:border-rose-300',
             btnColor: 'bg-rose-50 text-rose-700 hover:bg-rose-100'
             },
-        'Jumbo': {
+          'Jumbo': {
             name: 'Jumbo',
-                badgeClass: 'bg-sky-600 text-white',
+            badgeClass: 'bg-sky-600 text-white',
             borderHover: 'hover:border-sky-300',
             btnColor: 'bg-sky-50 text-sky-700 hover:bg-sky-100'
-        },
+            },
         'Emax': {
             name: 'Emax',
             badgeClass: 'bg-amber-600 text-white',
-                borderHover: 'hover:border-amber-300',
+            borderHover: 'hover:border-amber-300',
             btnColor: 'bg-amber-50 text-amber-700 hover:bg-amber-100'
         }
         };
 
-        function getProductPrice(product) {
-           if (!product) return 0;
+    function getProductPrice(product) {
+        if (!product) return 0;
             const val = product.price !== undefined ? product.price : product.Price;
-            return parseFloat(val) || 0;
+        return parseFloat(val) || 0;
         }
 
-    function filterAndSortProducts(products, maxPrice) {
-            if (!products || !Array.isArray(products)) return [];
+              function filterAndSortProducts(products, maxPrice) {
+         if (!products || !Array.isArray(products)) return [];
 
         return products
                 .filter(p => {
@@ -221,31 +228,31 @@
             .sort((a, b) => getProductPrice(a) - getProductPrice(b));
         }
 
-        async function handleSearch(event) {
-        if (event) event.preventDefault();
+       async function handleSearch(event) {
+            if (event) event.preventDefault();
 
         const priceInput = document.getElementById('maxPriceInput');
         const maxPrice = parseFloat(priceInput.value);
 
         if (!maxPrice || maxPrice <= 0) return;
 
-           currentMaxPrice = maxPrice;
-               const cacheKey = `findmylaptop_results_${maxPrice}`;
-              const cachedData = sessionStorage.getItem(cacheKey);
+            currentMaxPrice = maxPrice;
+        const cacheKey = `findmylaptop_results_${maxPrice}`;
+        const cachedData = sessionStorage.getItem(cacheKey);
 
-        resetGrid();
+             resetGrid();
            showSkeletons();
 
-          if (cachedData) {
-               setTimeout(() => {
-                allFilteredProducts = filterAndSortProducts(JSON.parse(cachedData), maxPrice);
-                    updateSummaryBar(maxPrice, true);
+        if (cachedData) {
+            setTimeout(() => {
+                    allFilteredProducts = filterAndSortProducts(JSON.parse(cachedData), maxPrice);
+                updateSummaryBar(maxPrice, true);
                 renderNextPage();
-             }, 250);
+              }, 250);
             } else {
               updateSummaryBar(maxPrice, false);
 
-            try {
+                try {
                 const response = await fetch(`?handler=Search&maxPrice=${maxPrice}`);
                 if (!response.ok) throw new Error("Server response failed");
 
@@ -254,24 +261,24 @@
 
                 sessionStorage.setItem(cacheKey, JSON.stringify(allFilteredProducts));
                 renderNextPage();
-            } catch (err) {
+                } catch (err) {
                 console.error("Error fetching laptops from server:", err);
-                    showError("Failed to fetch products from retailers. Please try again.");
+                showError("Failed to fetch products from retailers. Please try again.");
             }
         }
         }
 
       function setBudget(amount) {
         document.getElementById('maxPriceInput').value = amount;
-            handleSearch();
-    }
+        handleSearch();
+        }
 
         function resetGrid() {
         currentPage = 1;
-          pageSize = getPageSize();
-         allFilteredProducts = [];
+        pageSize = getPageSize();
+        allFilteredProducts = [];
         document.getElementById('productGrid').innerHTML = '';
-            document.getElementById('scrollMessage').textContent = '';
+          document.getElementById('scrollMessage').textContent = '';
         }
 
         function showSkeletons() {
@@ -280,78 +287,78 @@
             const skeletonCount = window.innerWidth < 640 ? 1 : 8;
             for (let i = 0; i < skeletonCount; i++) {
                 const skel = document.createElement('div');
-            skel.className = 'bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-3';
-            skel.innerHTML = `
-                <div class="h-4 skeleton rounded w-1/3"></div>
-                    <div class="h-36 skeleton rounded-lg"></div>
+                skel.className = 'bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-3';
+                skel.innerHTML = `
+                    <div class="h-4 skeleton rounded w-1/3"></div>
+                <div class="h-44 sm:h-36 skeleton rounded-lg"></div>
                 <div class="h-4 skeleton rounded w-3/4"></div>
                 <div class="h-3 skeleton rounded w-1/2"></div>
-                <div class="pt-2 flex justify-between items-center">
+                    <div class="pt-2 flex justify-between items-center">
                     <div class="h-5 skeleton rounded w-1/3"></div>
-                        <div class="h-8 skeleton rounded-lg w-1/4"></div>
+                    <div class="h-8 skeleton rounded-lg w-1/4"></div>
                 </div>
             `;
                 grid.appendChild(skel);
         }
         }
 
-       function updateSummaryBar(price, isCached) {
-            const bar = document.getElementById('filterSummaryBar');
-        const summaryText = document.getElementById('summaryText');
+    function updateSummaryBar(price, isCached) {
+          const bar = document.getElementById('filterSummaryBar');
+            const summaryText = document.getElementById('summaryText');
         const cacheBadge = document.getElementById('cacheBadge');
 
         bar.classList.remove('hidden');
         summaryText.textContent = `Laptops under AED ${price.toLocaleString()}`;
 
         if (isCached) {
-                cacheBadge.classList.remove('hidden');
+            cacheBadge.classList.remove('hidden');
             cacheBadge.textContent = 'Loaded from Session Storage';
-            } else {
-            cacheBadge.classList.add('hidden');
-            }
+        } else {
+                cacheBadge.classList.add('hidden');
+        }
         }
 
-        function renderNextPage() {
+           function renderNextPage() {
             const grid = document.getElementById('productGrid');
             const spinner = document.getElementById('scrollSpinner');
             const message = document.getElementById('scrollMessage');
 
             if (currentPage === 1) grid.innerHTML = '';
 
-         if (!allFilteredProducts || allFilteredProducts.length === 0) {
-            grid.innerHTML = `
+            if (!allFilteredProducts || allFilteredProducts.length === 0) {
+                grid.innerHTML = `
                 <div class="col-span-full py-12 text-center">
-                        <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
+                    <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
-                    <h3 class="text-base font-bold text-slate-800">No Laptops Found</h3>
-                        <p class="text-xs text-slate-500 mt-1">Try increasing your budget limit above.</p>
+                        <h3 class="text-base font-bold text-slate-800">No Laptops Found</h3>
+                    <p class="text-xs text-slate-500 mt-1">Try increasing your budget limit above.</p>
                 </div>
             `;
-            spinner.classList.add('hidden');
+                spinner.classList.add('hidden');
             message.textContent = '';
             return;
             }
 
-           const startIndex = (currentPage - 1) * pageSize;
-          const endIndex = startIndex + pageSize;
+        const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = startIndex + pageSize;
         const pageItems = allFilteredProducts.slice(startIndex, endIndex);
 
-        if (pageItems.length === 0) {
+         if (pageItems.length === 0) {
             spinner.classList.add('hidden');
                 message.textContent = `Showing all ${allFilteredProducts.length} matching laptops.`;
             return;
-            }
+        }
 
         pageItems.forEach(product => {
             const card = createProductCard(product);
             grid.appendChild(card);
-        });
+            });
 
         isLoading = false;
-            spinner.classList.add('hidden');
+        spinner.classList.add('hidden');
 
-            if (endIndex >= allFilteredProducts.length) {
+        if (endIndex >= allFilteredProducts.length) {
                 message.textContent = `Showing all ${allFilteredProducts.length} matching laptops.`;
             } else {
                 message.textContent = 'Scroll for more options...';
@@ -379,7 +386,7 @@
                 : (product.ImageUrl || product.imageUrl || 'https://via.placeholder.com/300');
 
             const imageContainerHtml = `
-                <div class="h-44 sm:h-36 bg-slate-50 rounded-lg p-2 mb-3 flex items-center justify-center overflow-hidden">
+                <div class="h-48 sm:h-36 bg-slate-50 rounded-lg p-3 mb-3 flex items-center justify-center overflow-hidden">
                     <a href="${url}" target="_blank" rel="noopener noreferrer" class="w-full h-full flex items-center justify-center">
                         <img src="${imageUrl}" alt="${title}" class="max-h-full max-w-full object-contain group-hover:scale-105 transition duration-300" referrerpolicy="no-referrer" loading="lazy"/>
                     </a>
@@ -387,9 +394,9 @@
             `;
 
             const visitStoreButtonHtml = `
-                <a href="${url}" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2 sm:px-3 sm:py-1.5 rounded-lg text-xs font-semibold ${retailerConfig.btnColor} transition flex items-center space-x-1">
+                <a href="${url}" target="_blank" rel="noopener noreferrer" class="px-4 py-2 sm:px-3 sm:py-1.5 rounded-lg text-xs font-semibold ${retailerConfig.btnColor} transition flex items-center space-x-1 shadow-sm">
                     <span>Visit Store</span>
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                    <svg class="w-3.5 h-3.5 sm:w-3 sm:h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                 </a>
             `;
 
@@ -399,67 +406,65 @@
             card.innerHTML = `
                 <div class="p-4 flex-1 flex flex-col">
                     <div class="flex items-center justify-between mb-2">
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${retailerConfig.badgeClass}">
+                        <span class="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${retailerConfig.badgeClass}">
                             ${retailer}
                         </span>
                         ${retailerImage ? `<img src="${retailerImage}" alt="${retailer}" class="h-4 max-w-[60px] object-contain" />` : ''}
                     </div>
                     ${imageContainerHtml}
-                    <a href="${url}" target="_blank" rel="noopener noreferrer" class="text-sm font-bold text-slate-800 line-clamp-2 mb-2 group-hover:text-blue-600 transition" title="${title}">
+                    <a href="${url}" target="_blank" rel="noopener noreferrer" class="text-sm sm:text-base font-bold text-slate-800 line-clamp-2 mb-2 group-hover:text-blue-600 transition" title="${title}">
                         ${title}
                     </a>
-                    <div class="mt-auto pt-2 flex items-center justify-between text-[11px] text-slate-500 border-t border-slate-100">
+                    <div class="mt-auto pt-2 flex items-center justify-between text-[11px] sm:text-xs text-slate-500 border-t border-slate-100">
                         <span class="font-medium text-slate-400">Brand:</span>
                         <span class="font-semibold text-slate-700">${brand}</span>
                     </div>
-            </div>
-            <div class="px-4 py-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between">
+                </div>
+                <div class="px-4 py-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between">
                     <div>
                     <span class="text-[10px] text-slate-400 block font-medium">Price</span>
-                        <span class="text-base font-extrabold text-slate-900">AED ${priceFormatted}</span>
-                </div>
+                    <span class="text-base sm:text-lg font-extrabold text-slate-900">AED ${priceFormatted}</span>
+                    </div>
                 ${visitStoreButtonHtml}
-              </div>
-            `;
+                </div>
+        `;
 
+           return card;
+        }
 
-        return card;
-             }
+        function setupIntersectionObserver() {
+            if (observer) observer.disconnect();
 
-    function setupIntersectionObserver() {
-                   if (observer) observer.disconnect();
+                 const trigger = document.getElementById('infiniteScrollTrigger');
 
-            const trigger = document.getElementById('infiniteScrollTrigger');
-
-        observer = new IntersectionObserver((entries) => {
-                if (entries[0].isIntersecting && !isLoading) {
+                 observer = new IntersectionObserver((entries) => {
+              if (entries[0].isIntersecting && !isLoading) {
                 const startIndex = currentPage * pageSize;
                 if (startIndex < allFilteredProducts.length) {
                         isLoading = true;
                     document.getElementById('scrollSpinner').classList.remove('hidden');
 
-                    setTimeout(() => {
+                        setTimeout(() => {
                         currentPage++;
-                            renderNextPage();
+                        renderNextPage();
                     }, 300);
                 }
-            }
+                }
         }, { rootMargin: '100px' });
 
         observer.observe(trigger);
     }
 
-      function clearCacheAndReload() {
+    function clearCacheAndReload() {
         sessionStorage.clear();
         handleSearch();
         }
 
-        function showError(msg) {
+    function showError(msg) {
             const grid = document.getElementById('productGrid');
             grid.innerHTML = `<div class="col-span-full py-8 text-center text-rose-600 font-medium">${msg}</div>`;
         }
 
-        // Initialize dataset and sort ascending
         window.onload = function() {
             allFilteredProducts = filterAndSortProducts(rawInitialData, currentMaxPrice);
             updateSummaryBar(currentMaxPrice, false);
