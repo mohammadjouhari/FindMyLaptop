@@ -57,7 +57,6 @@
         0% {
             background-position: 200% 0;
         }
-
         100% {
             background-position: -200% 0;
         }
@@ -86,9 +85,19 @@
             </div>
         </div>
 
-        <div id="statsBadge" class="hidden sm:flex items-center space-x-2 text-xs font-medium text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
-            <span id="cachedStatusDot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
-            <span id="statsText">Live Cross-Retailer Search</span>
+        <div class="flex items-center space-x-3">
+            <!-- Floating Compare Action Bar Trigger -->
+            <button id="compareFloatingBtn" onclick="openCompareModal()" class="hidden items-center space-x-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-lg shadow-blue-500/20 transition animate-bounce">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                <span>Compare (<span id="compareCountBadge">0</span>/2)</span>
+            </button>
+
+            <div id="statsBadge" class="hidden sm:flex items-center space-x-2 text-xs font-medium text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
+                <span id="cachedStatusDot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                <span id="statsText">Live Cross-Retailer Search</span>
+            </div>
         </div>
     </div>
 </header>
@@ -103,13 +112,12 @@
             Compare real-time options across <span class="text-rose-600 font-semibold">SharafDG</span>, <span class="text-sky-600 font-semibold">Jumbo</span>, and <span class="text-amber-600 font-semibold">Emax</span> instantly.
         </p>
 
-        <!-- Search Form -->
-        <form id="searchForm" onsubmit="handleSearch(event)" class="mt-6 max-w-md mx-auto">
+        <!-- Search & Brand Filter Form -->
+        <form id="searchForm" onsubmit="handleSearch(event)" class="mt-6 max-w-lg mx-auto space-y-3">
             <div class="relative flex items-center">
                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 font-semibold text-sm">
                     AED
                 </div>
-                <!-- Set text-base (16px) on mobile to stop iOS Safari input focus auto-zoom -->
                 <input type="number"
                        id="maxPriceInput"
                        name="maxPrice"
@@ -126,6 +134,21 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                     <span>Filter</span>
+                </button>
+            </div>
+
+            <!-- Brand Filter and Reset Controls Bar -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-2 pt-1">
+                <div class="w-full sm:w-auto flex-1">
+                    <select id="brandSelect" onchange="handleSearch()" class="w-full py-2.5 px-3 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-medium text-slate-700 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition">
+                        <option value="">All Brands</option>
+                    </select>
+                </div>
+                <button type="button" onclick="resetAllFilters()" class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-semibold text-xs sm:text-sm rounded-xl border border-slate-300 transition flex items-center justify-center space-x-1.5">
+                    <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span>Reset</span>
                 </button>
             </div>
         </form>
@@ -172,284 +195,510 @@
     </div>
 </main>
 
+<!-- Compare Modal -->
+<div id="compareModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden border border-slate-200 transform transition-all">
+        <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                </div>
+                <h3 class="font-bold text-lg text-slate-900">Compare Laptops</h3>
+            </div>
+            <button onclick="closeCompareModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-200/60 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <div id="compareModalContent" class="p-6">
+            <!-- Comparison Table Rendered Here -->
+        </div>
+
+        <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+            <button onclick="closeCompareModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-xs sm:text-sm rounded-xl transition">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
     let rawInitialData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Products));
     let allFilteredProducts = [];
     let currentPage = 1;
+    let selectedForCompare = [];
 
     function getPageSize() {
         return window.innerWidth < 640 ? 1 : 8;
     }
 
-        let pageSize = getPageSize();
+    let pageSize = getPageSize();
     let isLoading = false;
-       let observer = null;
-        let currentMaxPrice = parseFloat(document.getElementById('maxPriceInput').value) || 4000;
+    let observer = null;
+    let currentMaxPrice = parseFloat(document.getElementById('maxPriceInput').value) || 4000;
 
-       window.addEventListener('resize', () => {
+    window.addEventListener('resize', () => {
         pageSize = getPageSize();
-        });
+    });
 
-           const RETAILERS = {
+    const RETAILERS = {
         'SharafDG': {
             name: 'SharafDG',
             badgeClass: 'bg-rose-600 text-white',
             borderHover: 'hover:border-rose-300',
             btnColor: 'bg-rose-50 text-rose-700 hover:bg-rose-100'
-            },
-          'Jumbo': {
+        },
+        'Jumbo': {
             name: 'Jumbo',
             badgeClass: 'bg-sky-600 text-white',
             borderHover: 'hover:border-sky-300',
             btnColor: 'bg-sky-50 text-sky-700 hover:bg-sky-100'
-            },
+        },
         'Emax': {
             name: 'Emax',
             badgeClass: 'bg-amber-600 text-white',
             borderHover: 'hover:border-amber-300',
             btnColor: 'bg-amber-50 text-amber-700 hover:bg-amber-100'
         }
-        };
+    };
 
     function getProductPrice(product) {
         if (!product) return 0;
-            const val = product.price !== undefined ? product.price : product.Price;
+        const val = product.price !== undefined ? product.price : product.Price;
         return parseFloat(val) || 0;
-        }
+    }
 
-              function filterAndSortProducts(products, maxPrice) {
-         if (!products || !Array.isArray(products)) return [];
+    function getProductBrand(product) {
+        if (!product) return '';
+        return (product.brand || product.Brand || '').toString().trim();
+    }
+
+    function getProductRam(product) {
+        if (!product) return 'N/A';
+        const name = (product.Name || product.name || '').toString();
+        // Regex to search RAM patterns like 8GB, 16 GB, 32GB RAM etc.
+        const ramMatch = name.match(/(\d+)\s*(?:GB|gb)\b(?:\s*RAM)?/i);
+        if (ramMatch && ramMatch[1]) {
+            return ramMatch[1] + ' GB';
+        }
+        return 'Standard';
+    }
+
+    function getProductId(product) {
+        if (!product) return '';
+        return product.Url || product.url || product.Name || product.name || JSON.stringify(product);
+    }
+
+    function updateBrandDropdown(products) {
+        const brandSelect = document.getElementById('brandSelect');
+        const currentSelectedBrand = brandSelect.value;
+        
+        const brands = [...new Set(products.map(p => getProductBrand(p)).filter(b => b.length > 0))].sort();
+        
+        brandSelect.innerHTML = '<option value="">All Brands</option>';
+        brands.forEach(brand => {
+            const opt = document.createElement('option');
+            opt.value = brand;
+            opt.textContent = brand;
+            if (brand === currentSelectedBrand) {
+                opt.selected = true;
+            }
+            brandSelect.appendChild(opt);
+        });
+    }
+
+    function filterAndSortProducts(products, maxPrice) {
+        if (!products || !Array.isArray(products)) return [];
+
+        const selectedBrand = document.getElementById('brandSelect').value;
 
         return products
-                .filter(p => {
+            .filter(p => {
                 const price = getProductPrice(p);
-                return price > 0 && price <= maxPrice;
-                })
-            .sort((a, b) => getProductPrice(a) - getProductPrice(b));
-        }
+                if (price <= 0 || price > maxPrice) return false;
 
-       async function handleSearch(event) {
-            if (event) event.preventDefault();
+                if (selectedBrand) {
+                    const brand = getProductBrand(p);
+                    if (brand.toLowerCase() !== selectedBrand.toLowerCase()) return false;
+                }
+
+                return true;
+            })
+            .sort((a, b) => getProductPrice(a) - getProductPrice(b));
+    }
+
+    async function handleSearch(event) {
+        if (event) event.preventDefault();
 
         const priceInput = document.getElementById('maxPriceInput');
         const maxPrice = parseFloat(priceInput.value);
 
         if (!maxPrice || maxPrice <= 0) return;
 
-            currentMaxPrice = maxPrice;
+        currentMaxPrice = maxPrice;
         const cacheKey = `findmylaptop_results_${maxPrice}`;
         const cachedData = sessionStorage.getItem(cacheKey);
 
-             resetGrid();
-           showSkeletons();
+        resetGrid();
+        showSkeletons();
 
         if (cachedData) {
             setTimeout(() => {
-                    allFilteredProducts = filterAndSortProducts(JSON.parse(cachedData), maxPrice);
+                const rawParsed = JSON.parse(cachedData);
+                updateBrandDropdown(rawParsed);
+                allFilteredProducts = filterAndSortProducts(rawParsed, maxPrice);
                 updateSummaryBar(maxPrice, true);
                 renderNextPage();
-              }, 250);
-            } else {
-              updateSummaryBar(maxPrice, false);
+            }, 250);
+        } else {
+            updateSummaryBar(maxPrice, false);
 
-                try {
+            try {
                 const response = await fetch(`?handler=Search&maxPrice=${maxPrice}`);
                 if (!response.ok) throw new Error("Server response failed");
 
                 const rawProducts = await response.json();
+                updateBrandDropdown(rawProducts);
                 allFilteredProducts = filterAndSortProducts(rawProducts, maxPrice);
 
-                sessionStorage.setItem(cacheKey, JSON.stringify(allFilteredProducts));
+                sessionStorage.setItem(cacheKey, JSON.stringify(rawProducts));
                 renderNextPage();
-                } catch (err) {
+            } catch (err) {
                 console.error("Error fetching laptops from server:", err);
                 showError("Failed to fetch products from retailers. Please try again.");
             }
         }
-        }
+    }
 
-      function setBudget(amount) {
+    function setBudget(amount) {
         document.getElementById('maxPriceInput').value = amount;
         handleSearch();
-        }
+    }
 
-        function resetGrid() {
+    function resetAllFilters() {
+        document.getElementById('maxPriceInput').value = 4000;
+        document.getElementById('brandSelect').value = "";
+        handleSearch();
+    }
+
+    function resetGrid() {
         currentPage = 1;
         pageSize = getPageSize();
         allFilteredProducts = [];
         document.getElementById('productGrid').innerHTML = '';
-          document.getElementById('scrollMessage').textContent = '';
-        }
+        document.getElementById('scrollMessage').textContent = '';
+    }
 
-        function showSkeletons() {
-            const grid = document.getElementById('productGrid');
-            grid.innerHTML = '';
-            const skeletonCount = window.innerWidth < 640 ? 1 : 8;
-            for (let i = 0; i < skeletonCount; i++) {
-                const skel = document.createElement('div');
-                skel.className = 'bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-3';
-                skel.innerHTML = `
-                    <div class="h-4 skeleton rounded w-1/3"></div>
+    function showSkeletons() {
+        const grid = document.getElementById('productGrid');
+        grid.innerHTML = '';
+        const skeletonCount = window.innerWidth < 640 ? 1 : 8;
+        for (let i = 0; i < skeletonCount; i++) {
+            const skel = document.createElement('div');
+            skel.className = 'bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-3';
+            skel.innerHTML = `
+                <div class="h-4 skeleton rounded w-1/3"></div>
                 <div class="h-44 sm:h-36 skeleton rounded-lg"></div>
                 <div class="h-4 skeleton rounded w-3/4"></div>
                 <div class="h-3 skeleton rounded w-1/2"></div>
-                    <div class="pt-2 flex justify-between items-center">
+                <div class="pt-2 flex justify-between items-center">
                     <div class="h-5 skeleton rounded w-1/3"></div>
                     <div class="h-8 skeleton rounded-lg w-1/4"></div>
                 </div>
             `;
-                grid.appendChild(skel);
+            grid.appendChild(skel);
         }
-        }
+    }
 
     function updateSummaryBar(price, isCached) {
-          const bar = document.getElementById('filterSummaryBar');
-            const summaryText = document.getElementById('summaryText');
+        const bar = document.getElementById('filterSummaryBar');
+        const summaryText = document.getElementById('summaryText');
         const cacheBadge = document.getElementById('cacheBadge');
+        const selectedBrand = document.getElementById('brandSelect').value;
 
         bar.classList.remove('hidden');
-        summaryText.textContent = `Laptops under AED ${price.toLocaleString()}`;
+        let text = `Laptops under AED ${price.toLocaleString()}`;
+        if (selectedBrand) {
+            text += ` • Brand: ${selectedBrand}`;
+        }
+        summaryText.textContent = text;
 
         if (isCached) {
             cacheBadge.classList.remove('hidden');
             cacheBadge.textContent = 'Loaded from Session Storage';
         } else {
-                cacheBadge.classList.add('hidden');
+            cacheBadge.classList.add('hidden');
         }
-        }
+    }
 
-           function renderNextPage() {
-            const grid = document.getElementById('productGrid');
-            const spinner = document.getElementById('scrollSpinner');
-            const message = document.getElementById('scrollMessage');
+    function renderNextPage() {
+        const grid = document.getElementById('productGrid');
+        const spinner = document.getElementById('scrollSpinner');
+        const message = document.getElementById('scrollMessage');
 
-            if (currentPage === 1) grid.innerHTML = '';
+        if (currentPage === 1) grid.innerHTML = '';
 
-            if (!allFilteredProducts || allFilteredProducts.length === 0) {
-                grid.innerHTML = `
+        if (!allFilteredProducts || allFilteredProducts.length === 0) {
+            grid.innerHTML = `
                 <div class="col-span-full py-12 text-center">
                     <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
-                        <h3 class="text-base font-bold text-slate-800">No Laptops Found</h3>
-                    <p class="text-xs text-slate-500 mt-1">Try increasing your budget limit above.</p>
+                    <h3 class="text-base font-bold text-slate-800">No Laptops Found</h3>
+                    <p class="text-xs text-slate-500 mt-1">Try increasing your budget limit or changing filters above.</p>
                 </div>
             `;
-                spinner.classList.add('hidden');
+            spinner.classList.add('hidden');
             message.textContent = '';
             return;
-            }
+        }
 
         const startIndex = (currentPage - 1) * pageSize;
-            const endIndex = startIndex + pageSize;
+        const endIndex = startIndex + pageSize;
         const pageItems = allFilteredProducts.slice(startIndex, endIndex);
 
-         if (pageItems.length === 0) {
+        if (pageItems.length === 0) {
             spinner.classList.add('hidden');
-                message.textContent = `Showing all ${allFilteredProducts.length} matching laptops.`;
+            message.textContent = `Showing all ${allFilteredProducts.length} matching laptops.`;
             return;
         }
 
         pageItems.forEach(product => {
             const card = createProductCard(product);
             grid.appendChild(card);
-            });
+        });
 
         isLoading = false;
         spinner.classList.add('hidden');
 
         if (endIndex >= allFilteredProducts.length) {
-                message.textContent = `Showing all ${allFilteredProducts.length} matching laptops.`;
-            } else {
-                message.textContent = 'Scroll for more options...';
-                setupIntersectionObserver();
+            message.textContent = `Showing all ${allFilteredProducts.length} matching laptops.`;
+        } else {
+            message.textContent = 'Scroll for more options...';
+            setupIntersectionObserver();
+        }
+    }
+
+    function toggleCompare(product) {
+        const pId = getProductId(product);
+        const existingIndex = selectedForCompare.findIndex(p => getProductId(p) === pId);
+
+        if (existingIndex > -1) {
+            selectedForCompare.splice(existingIndex, 1);
+        } else {
+            if (selectedForCompare.length >= 2) {
+                alert("You can compare a maximum of 2 laptops at a time.");
+                return;
             }
+            selectedForCompare.push(product);
         }
 
-        function createProductCard(product) {
-            const title = product.Name || product.name || 'Laptop';
-            const brand = product.Brand || product.brand || 'Brand';
-            const rawPrice = getProductPrice(product);
+        updateCompareUI();
+        // Re-render cards or update buttons to reflect selection state
+        refreshCardSelectionStates();
+    }
+
+    function updateCompareUI() {
+        const count = selectedForCompare.length;
+        document.getElementById('compareCountBadge').textContent = count;
+        const floatingBtn = document.getElementById('compareFloatingBtn');
+        if (count > 0) {
+            floatingBtn.classList.remove('hidden');
+            floatingBtn.classList.add('flex');
+        } else {
+            floatingBtn.classList.add('hidden');
+            floatingBtn.classList.remove('flex');
+        }
+    }
+
+    function refreshCardSelectionStates() {
+        const grid = document.getElementById('productGrid');
+        const cards = grid.children;
+        // Re-check checkboxes or buttons across rendered cards
+        allFilteredProducts.forEach((prod, index) => {
+            const pId = getProductId(prod);
+            const isSelected = selectedForCompare.some(p => getProductId(p) === pId);
+            const btn = document.getElementById(`compare_btn_${index}`);
+            if (btn) {
+                if (isSelected) {
+                    btn.className = "w-full py-2 px-3 rounded-lg text-xs font-semibold bg-emerald-600 text-white transition flex items-center justify-center space-x-1 shadow-sm";
+                    btn.innerHTML = `<span>Selected for Compare ✓</span>`;
+                } else {
+                    btn.className = "w-full py-2 px-3 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center justify-center space-x-1 shadow-sm";
+                    btn.innerHTML = `<span>Compare (+</span>)`;
+                }
+            }
+        });
+    }
+
+    function openCompareModal() {
+        if (selectedForCompare.length === 0) {
+            alert("Please select at least 1 laptop to compare.");
+            return;
+        }
+
+        const modalContent = document.getElementById('compareModalContent');
+        
+        let colsHtml = '';
+        selectedForCompare.forEach(prod => {
+            const title = prod.Name || prod.name || 'Laptop';
+            const brand = getProductBrand(prod) || 'Brand';
+            const rawPrice = getProductPrice(prod);
             const priceFormatted = rawPrice.toLocaleString();
-            const url = product.Url || product.url || '#';
-            const retailer = product.Retailer || product.retailer || 'Store';
-            const retailerImage = product.RetailerImage || product.retailerImage;
-
-            const retailerKey = (retailer && RETAILERS[retailer]) ? retailer : 'SharafDG';
-            const retailerConfig = RETAILERS[retailerKey];
-
+            const ram = getProductRam(prod);
+            const retailer = prod.Retailer || prod.retailer || 'Store';
+            const url = prod.Url || prod.url || '#';
             const isSharafDG = retailer.toString().trim().toLowerCase().includes('sharaf');
-
             const sharafDgDummyUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv9xvEsNe-LtVTOl6Yvcf_yNshKUEDaZ9kYgAoK5jtVw&s';
-            const imageUrl = isSharafDG
-                ? sharafDgDummyUrl
-                : (product.ImageUrl || product.imageUrl || 'https://via.placeholder.com/300');
+            const imageUrl = isSharafDG ? sharafDgDummyUrl : (prod.ImageUrl || prod.imageUrl || 'https://via.placeholder.com/300');
 
-            const imageContainerHtml = `
-                <div class="h-48 sm:h-36 bg-slate-50 rounded-lg p-3 mb-3 flex items-center justify-center overflow-hidden">
-                    <a href="${url}" target="_blank" rel="noopener noreferrer" class="w-full h-full flex items-center justify-center">
-                        <img src="${imageUrl}" alt="${title}" class="max-h-full max-w-full object-contain group-hover:scale-105 transition duration-300" referrerpolicy="no-referrer" loading="lazy"/>
-                    </a>
-                </div>
-            `;
-
-            const visitStoreButtonHtml = `
-                <a href="${url}" target="_blank" rel="noopener noreferrer" class="px-4 py-2 sm:px-3 sm:py-1.5 rounded-lg text-xs font-semibold ${retailerConfig.btnColor} transition flex items-center space-x-1 shadow-sm">
-                    <span>Visit Store</span>
-                    <svg class="w-3.5 h-3.5 sm:w-3 sm:h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                </a>
-            `;
-
-            const card = document.createElement('div');
-            card.className = `bg-white rounded-xl border border-slate-200/90 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden group ${retailerConfig.borderHover}`;
-
-            card.innerHTML = `
-                <div class="p-4 flex-1 flex flex-col">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${retailerConfig.badgeClass}">
-                            ${retailer}
-                        </span>
-                        ${retailerImage ? `<img src="${retailerImage}" alt="${retailer}" class="h-4 max-w-[60px] object-contain" />` : ''}
-                    </div>
-                    ${imageContainerHtml}
-                    <a href="${url}" target="_blank" rel="noopener noreferrer" class="text-sm sm:text-base font-bold text-slate-800  mb-2 group-hover:text-blue-600 transition" title="${title}">
-                        ${title}
-                    </a>
-                    <div class="mt-auto pt-2 flex items-center justify-between text-[11px] sm:text-xs text-slate-500 border-t border-slate-100">
-                        <span class="font-medium text-slate-400">Brand:</span>
-                        <span class="font-semibold text-slate-700">${brand}</span>
-                    </div>
-                </div>
-                <div class="px-4 py-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between">
+            colsHtml += `
+                <div class="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-between">
                     <div>
-                    <span class="text-[10px] text-slate-400 block font-medium">Price</span>
-                    <span class="text-base sm:text-lg font-extrabold text-slate-900">AED ${priceFormatted}</span>
+                        <div class="h-28 bg-white rounded-lg p-2 mb-3 flex items-center justify-center">
+                            <img src="${imageUrl}" alt="${title}" class="max-h-full max-w-full object-contain" referrerpolicy="no-referrer" />
+                        </div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-100 text-blue-800">${retailer}</span>
+                        <h4 class="font-bold text-slate-800 text-sm mt-2 line-clamp-2">${title}</h4>
                     </div>
-                ${visitStoreButtonHtml}
+                    <div class="mt-4 pt-3 border-t border-slate-200 space-y-2 text-xs">
+                        <div class="flex justify-between">
+                            <span class="text-slate-500 font-medium">Brand:</span>
+                            <span class="font-semibold text-slate-800">${brand}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500 font-medium">RAM:</span>
+                            <span class="font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">${ram}</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-2 border-t border-slate-200">
+                            <span class="text-slate-500 font-medium">Price:</span>
+                            <span class="text-base font-extrabold text-slate-900">AED ${priceFormatted}</span>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <a href="${url}" target="_blank" rel="noopener noreferrer" class="w-full block text-center py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow transition">
+                            View Store
+                        </a>
+                    </div>
                 </div>
+            `;
+        });
+
+        modalContent.innerHTML = `
+            <div class="grid grid-cols-1 sm:grid-cols-${selectedForCompare.length} gap-4">
+                ${colsHtml}
+            </div>
         `;
 
-           return card;
-        }
+        document.getElementById('compareModal').classList.remove('hidden');
+    }
 
-        function setupIntersectionObserver() {
-            if (observer) observer.disconnect();
+    function closeCompareModal() {
+        document.getElementById('compareModal').classList.add('hidden');
+    }
 
-                 const trigger = document.getElementById('infiniteScrollTrigger');
+    function createProductCard(product) {
+        const globalIndex = allFilteredProducts.indexOf(product);
+        const title = product.Name || product.name || 'Laptop';
+        const brand = getProductBrand(product) || 'Brand';
+        const rawPrice = getProductPrice(product);
+        const priceFormatted = rawPrice.toLocaleString();
+        const url = product.Url || product.url || '#';
+        const retailer = product.Retailer || product.retailer || 'Store';
+        const retailerImage = product.RetailerImage || product.retailerImage;
 
-                 observer = new IntersectionObserver((entries) => {
-              if (entries[0].isIntersecting && !isLoading) {
+        const retailerKey = (retailer && RETAILERS[retailer]) ? retailer : 'SharafDG';
+        const retailerConfig = RETAILERS[retailerKey];
+
+        const isSharafDG = retailer.toString().trim().toLowerCase().includes('sharaf');
+
+        const sharafDgDummyUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv9xvEsNe-LtVTOl6Yvcf_yNshKUEDaZ9kYgAoK5jtVw&s';
+        const imageUrl = isSharafDG
+            ? sharafDgDummyUrl
+            : (product.ImageUrl || product.imageUrl || 'https://via.placeholder.com/300');
+
+        const isSelected = selectedForCompare.some(p => getProductId(p) === getProductId(product));
+
+        const imageContainerHtml = `
+            <div class="h-48 sm:h-36 bg-slate-50 rounded-lg p-3 mb-3 flex items-center justify-center overflow-hidden">
+                <a href="${url}" target="_blank" rel="noopener noreferrer" class="w-full h-full flex items-center justify-center">
+                    <img src="${imageUrl}" alt="${title}" class="max-h-full max-w-full object-contain group-hover:scale-105 transition duration-300" referrerpolicy="no-referrer" loading="lazy"/>
+                </a>
+            </div>
+        `;
+
+        const visitStoreButtonHtml = `
+            <a href="${url}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-lg text-xs font-semibold ${retailerConfig.btnColor} transition flex items-center space-x-1 shadow-sm">
+                <span>Visit Store</span>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+            </a>
+        `;
+
+        const compareBtnClass = isSelected 
+            ? "w-full py-2 px-3 rounded-lg text-xs font-semibold bg-emerald-600 text-white transition flex items-center justify-center space-x-1 shadow-sm"
+            : "w-full py-2 px-3 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center justify-center space-x-1 shadow-sm";
+
+        const compareBtnText = isSelected ? "Selected for Compare ✓" : "Compare (+)";
+
+        const card = document.createElement('div');
+        card.className = `bg-white rounded-xl border border-slate-200/90 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden group ${retailerConfig.borderHover}`;
+
+        card.innerHTML = `
+            <div class="p-4 flex-1 flex flex-col">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${retailerConfig.badgeClass}">
+                        ${retailer}
+                    </span>
+                    ${retailerImage ? `<img src="${retailerImage}" alt="${retailer}" class="h-4 max-w-[60px] object-contain" />` : ''}
+                </div>
+                ${imageContainerHtml}
+                <a href="${url}" target="_blank" rel="noopener noreferrer" class="text-sm sm:text-base font-bold text-slate-800 mb-2 group-hover:text-blue-600 transition" title="${title}">
+                    ${title}
+                </a>
+                <div class="mt-auto pt-2 flex items-center justify-between text-[11px] sm:text-xs text-slate-500 border-t border-slate-100">
+                    <span class="font-medium text-slate-400">Brand:</span>
+                    <span class="font-semibold text-slate-700">${brand}</span>
+                </div>
+            </div>
+            <div class="px-4 py-3 bg-slate-50/80 border-t border-slate-100 flex flex-col gap-2.5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] text-slate-400 block font-medium">Price</span>
+                        <span class="text-base sm:text-lg font-extrabold text-slate-900">AED ${priceFormatted}</span>
+                    </div>
+                    ${visitStoreButtonHtml}
+                </div>
+                <button id="compare_btn_${globalIndex}" onclick='toggleCompare(${JSON.stringify(product)})' class="${compareBtnClass}">
+                    <span>${compareBtnText}</span>
+                </button>
+            </div>
+        `;
+
+        return card;
+    }
+
+    function setupIntersectionObserver() {
+        if (observer) observer.disconnect();
+
+        const trigger = document.getElementById('infiniteScrollTrigger');
+
+        observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && !isLoading) {
                 const startIndex = currentPage * pageSize;
                 if (startIndex < allFilteredProducts.length) {
-                        isLoading = true;
+                    isLoading = true;
                     document.getElementById('scrollSpinner').classList.remove('hidden');
 
-                        setTimeout(() => {
+                    setTimeout(() => {
                         currentPage++;
                         renderNextPage();
                     }, 300);
                 }
-                }
+            }
         }, { rootMargin: '100px' });
 
         observer.observe(trigger);
@@ -457,17 +706,20 @@
 
     function clearCacheAndReload() {
         sessionStorage.clear();
+        selectedForCompare = [];
+        updateCompareUI();
         handleSearch();
-        }
+    }
 
     function showError(msg) {
-            const grid = document.getElementById('productGrid');
-            grid.innerHTML = `<div class="col-span-full py-8 text-center text-rose-600 font-medium">${msg}</div>`;
-        }
+        const grid = document.getElementById('productGrid');
+        grid.innerHTML = `<div class="col-span-full py-8 text-center text-rose-600 font-medium">${msg}</div>`;
+    }
 
-        window.onload = function() {
-            allFilteredProducts = filterAndSortProducts(rawInitialData, currentMaxPrice);
-            updateSummaryBar(currentMaxPrice, false);
-            renderNextPage();
-        };
+    window.onload = function() {
+        updateBrandDropdown(rawInitialData);
+        allFilteredProducts = filterAndSortProducts(rawInitialData, currentMaxPrice);
+        updateSummaryBar(currentMaxPrice, false);
+        renderNextPage();
+    };
 </script>
