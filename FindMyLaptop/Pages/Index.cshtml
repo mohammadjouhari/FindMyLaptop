@@ -57,7 +57,6 @@
         0% {
             background-position: 200% 0;
         }
-
         100% {
             background-position: -200% 0;
         }
@@ -138,19 +137,35 @@
                 </button>
             </div>
 
-            <!-- Brand Filter and Reset Controls Bar -->
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-2 pt-1">
-                <div class="w-full sm:w-auto flex-1">
+            <!-- Controls Bar: Brand, Sorting, Clear Compare, Reset -->
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-1">
+                <div>
                     <select id="brandSelect" onchange="handleSearch()" class="w-full py-2.5 px-3 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-medium text-slate-700 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition">
                         <option value="">All Brands</option>
                     </select>
                 </div>
-                <button type="button" onclick="resetAllFilters()" class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-semibold text-xs sm:text-sm rounded-xl border border-slate-300 transition flex items-center justify-center space-x-1.5">
-                    <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    <span>Reset</span>
-                </button>
+                <div>
+                    <select id="sortSelect" onchange="handleSortChange()" class="w-full py-2.5 px-3 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-medium text-slate-700 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition">
+                        <option value="retailer">Default (Interleaved)</option>
+                        <option value="price_low_high">Price: Low to High</option>
+                    </select>
+                </div>
+                <div>
+                    <button type="button" onclick="clearCompareSelection()" class="w-full py-2.5 px-3 bg-amber-50 hover:bg-amber-100 active:scale-95 text-amber-700 font-semibold text-xs sm:text-sm rounded-xl border border-amber-300 transition flex items-center justify-center space-x-1">
+                        <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        <span>Clear Compare</span>
+                    </button>
+                </div>
+                <div>
+                    <button type="button" onclick="resetAllFilters()" class="w-full py-2.5 px-3 bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-semibold text-xs sm:text-sm rounded-xl border border-slate-300 transition flex items-center justify-center space-x-1">
+                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        <span>Reset</span>
+                    </button>
+                </div>
             </div>
         </form>
 
@@ -218,11 +233,14 @@
             </button>
         </div>
 
-        <div id="compareModalContent" class="p-4 sm:p-6 max-h-[80vh] overflow-y-auto">
+        <div id="compareModalContent" class="p-4 sm:p-6 max-h-[80vh] overflow-y-auto flex flex-col sm:flex-row gap-4">
             <!-- Comparison Side-by-Side Cards Rendered Here -->
         </div>
 
-        <div class="px-4 sm:px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+        <div class="px-4 sm:px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+            <button onclick="clearCompareSelection()" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-xs sm:text-sm rounded-xl transition border border-rose-200">
+                Clear Selection
+            </button>
             <button onclick="closeCompareModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-xs sm:text-sm rounded-xl transition">
                 Close
             </button>
@@ -319,24 +337,100 @@
         });
     }
 
+    function sortProductsWithInterleavedJumbo(products) {
+        if (!products || !Array.isArray(products)) return [];
+
+        const retailerBuckets = {};
+        const jumboProducts = [];
+
+        products.forEach(p => {
+            const retailer = (p.Retailer || p.retailer || 'Other').toString().trim();
+            const lowerKey = retailer.toLowerCase();
+
+            if (lowerKey.includes('jumbo')) {
+                jumboProducts.push(p);
+            } else {
+                if (!retailerBuckets[retailer]) {
+                    retailerBuckets[retailer] = [];
+                }
+                retailerBuckets[retailer].push(p);
+            }
+        });
+
+        const jumboPool = jumboProducts.slice(0, 200);
+        const jumboRemaining = jumboProducts.slice(200);
+
+        if (jumboPool.length > 0) {
+            retailerBuckets['Jumbo'] = jumboPool;
+        }
+
+        const interleavedList = [];
+        const nonJumboRemaining = [];
+        let itemAddedInRound = true;
+        let roundIndex = 0;
+
+        while (itemAddedInRound && roundIndex < 200) {
+            itemAddedInRound = false;
+            for (const key in retailerBuckets) {
+                if (retailerBuckets[key].length > roundIndex) {
+                    interleavedList.push(retailerBuckets[key][roundIndex]);
+                    itemAddedInRound = true;
+                }
+            }
+            roundIndex++;
+        }
+
+        for (const key in retailerBuckets) {
+            if (key !== 'Jumbo' && retailerBuckets[key].length > 200) {
+                nonJumboRemaining.push(...retailerBuckets[key].slice(200));
+            }
+        }
+
+        return [...interleavedList, ...nonJumboRemaining, ...jumboRemaining];
+    }
+
     function filterAndSortProducts(products, maxPrice) {
         if (!products || !Array.isArray(products)) return [];
 
         const selectedBrand = document.getElementById('brandSelect').value;
+        const sortMode = document.getElementById('sortSelect').value;
 
-        return products
-            .filter(p => {
-                const price = getProductPrice(p);
-                if (price <= 0 || price > maxPrice) return false;
+        const filtered = products.filter(p => {
+            const price = getProductPrice(p);
+            if (price <= 0 || price > maxPrice) return false;
 
-                if (selectedBrand) {
-                    const brand = getProductBrand(p);
-                    if (brand.toLowerCase() !== selectedBrand.toLowerCase()) return false;
-                }
+            if (selectedBrand) {
+                const brand = getProductBrand(p);
+                if (brand.toLowerCase() !== selectedBrand.toLowerCase()) return false;
+            }
 
-                return true;
-            })
-            .sort((a, b) => getProductPrice(a) - getProductPrice(b));
+            return true;
+        });
+
+        if (sortMode === 'price_low_high') {
+            return filtered.sort((a, b) => getProductPrice(a) - getProductPrice(b));
+        } else {
+            // Default interleaved sorting
+            const sortedByPrice = filtered.sort((a, b) => getProductPrice(a) - getProductPrice(b));
+            return sortProductsWithInterleavedJumbo(sortedByPrice);
+        }
+    }
+
+    function handleSortChange() {
+        const priceInput = document.getElementById('maxPriceInput');
+        const maxPrice = parseFloat(priceInput.value) || 4000;
+        const cacheKey = `findmylaptop_results_${maxPrice}`;
+        const cachedData = sessionStorage.getItem(cacheKey);
+
+        if (cachedData) {
+            const rawParsed = JSON.parse(cachedData);
+            resetGrid();
+            allFilteredProducts = filterAndSortProducts(rawParsed, maxPrice);
+            updateSummaryBar(maxPrice, true);
+            renderNextPage();
+        } else {
+            handleSearch();
+        }
     }
 
     async function handleSearch(event) {
@@ -390,7 +484,15 @@
     function resetAllFilters() {
         document.getElementById('maxPriceInput').value = 4000;
         document.getElementById('brandSelect').value = "";
+        document.getElementById('sortSelect').value = "retailer";
         handleSearch();
+    }
+
+    function clearCompareSelection() {
+        selectedForCompare = [];
+        updateCompareUI();
+        refreshCardSelectionStates();
+        closeCompareModal();
     }
 
     function resetGrid() {
@@ -410,15 +512,15 @@
             const skel = document.createElement('div');
             skel.className = 'bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-3';
             skel.innerHTML = `
-                    <div class="h-4 skeleton rounded w-1/3"></div>
-                    <div class="h-44 sm:h-36 skeleton rounded-lg"></div>
-                    <div class="h-4 skeleton rounded w-3/4"></div>
-                    <div class="h-3 skeleton rounded w-1/2"></div>
-                    <div class="pt-2 flex justify-between items-center">
-                        <div class="h-5 skeleton rounded w-1/3"></div>
-                        <div class="h-8 skeleton rounded-lg w-1/4"></div>
-                    </div>
-                `;
+                <div class="h-4 skeleton rounded w-1/3"></div>
+                <div class="h-44 sm:h-36 skeleton rounded-lg"></div>
+                <div class="h-4 skeleton rounded w-3/4"></div>
+                <div class="h-3 skeleton rounded w-1/2"></div>
+                <div class="pt-2 flex justify-between items-center">
+                    <div class="h-5 skeleton rounded w-1/3"></div>
+                    <div class="h-8 skeleton rounded-lg w-1/4"></div>
+                </div>
+            `;
             grid.appendChild(skel);
         }
     }
@@ -453,14 +555,14 @@
 
         if (!allFilteredProducts || allFilteredProducts.length === 0) {
             grid.innerHTML = `
-                    <div class="col-span-full py-12 text-center">
-                        <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        </div>
-                        <h3 class="text-base font-bold text-slate-800">No Laptops Found</h3>
-                        <p class="text-xs text-slate-500 mt-1">Try increasing your budget limit or changing filters above.</p>
+                <div class="col-span-full py-12 text-center">
+                    <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
-                `;
+                    <h3 class="text-base font-bold text-slate-800">No Laptops Found</h3>
+                    <p class="text-xs text-slate-500 mt-1">Try increasing your budget limit or changing filters above.</p>
+                </div>
+            `;
             spinner.classList.add('hidden');
             message.textContent = '';
             return;
@@ -494,6 +596,79 @@
         }
     }
 
+    function createProductCard(product, globalIndex) {
+        const title = product.Name || product.name || 'Laptop';
+        const rawPrice = getProductPrice(product);
+        const price = rawPrice.toLocaleString();
+        const brand = getProductBrand(product) || 'Brand';
+        const ram = getProductRamText(product);
+        const retailer = product.Retailer || product.retailer || 'Store';
+        const url = product.Url || product.url || '#';
+        const isSharafDG = retailer.toString().trim().toLowerCase().includes('sharaf');
+        const sharafDgDummyUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv9xvEsNe-LtVTOl6Yvcf_yNshKUEDaZ9kYgAoK5jtVw&s';
+        const imageUrl = isSharafDG ? sharafDgDummyUrl : (product.ImageUrl || product.imageUrl || 'https://via.placeholder.com/300');
+
+        const retailerConfig = RETAILERS[retailer] || {
+            badgeClass: 'bg-slate-600 text-white',
+            borderHover: 'hover:border-slate-300',
+            btnColor: 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+        };
+
+        const pId = getProductId(product);
+        const isSelected = selectedForCompare.some(p => getProductId(p) === pId);
+
+        const card = document.createElement('div');
+        card.className = `bg-white rounded-2xl p-4 border border-slate-200 ${retailerConfig.borderHover} shadow-sm hover:shadow-md transition-all flex flex-col justify-between group`;
+        card.innerHTML = `
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${retailerConfig.badgeClass}">${retailer}</span>
+                    <span class="text-xs font-semibold text-slate-400">${brand}</span>
+                </div>
+                <div class="h-40 sm:h-36 bg-slate-50 rounded-xl p-3 mb-3 flex items-center justify-center overflow-hidden group-hover:bg-blue-50/30 transition">
+                    <img src="${imageUrl}" alt="${title}" class="max-h-full max-w-full object-contain group-hover:scale-105 transition duration-300" referrerpolicy="no-referrer" />
+                </div>
+                <h3 class="font-bold text-slate-800 text-xs sm:text-sm line-clamp-2" title="${title}">${title}</h3>
+                <div class="mt-2 flex items-center space-x-2">
+                    <span class="text-[10px] font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded">RAM: ${ram}</span>
+                </div>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] text-slate-400 block font-medium">Best Price</span>
+                    <span class="text-sm sm:text-base font-extrabold text-slate-900">AED ${price}</span>
+                </div>
+                <div class="flex space-x-1.5">
+                    <button id="compare_btn_${globalIndex}" onclick="toggleCompare(${globalIndex})" class="py-2 px-3 rounded-lg text-xs font-semibold ${isSelected ? 'bg-emerald-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'} transition flex items-center justify-center shadow-sm">
+                        <span>${isSelected ? 'Selected ✓' : 'Compare (+)'}</span>
+                    </button>
+                    <a href="${url}" target="_blank" rel="noopener noreferrer" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow transition flex items-center space-x-1">
+                        <span>Store</span>
+                    </a>
+                </div>
+            </div>
+        `;
+        return card;
+    }
+
+    function setupIntersectionObserver() {
+        if (observer) observer.disconnect();
+
+        const trigger = document.getElementById('infiniteScrollTrigger');
+        observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && !isLoading) {
+                isLoading = true;
+                document.getElementById('scrollSpinner').classList.remove('hidden');
+                setTimeout(() => {
+                    currentPage++;
+                    renderNextPage();
+                }, 300);
+            }
+        }, { rootMargin: '200px' });
+
+        observer.observe(trigger);
+    }
+
     function toggleCompare(globalIndex) {
         const product = allFilteredProducts[globalIndex];
         if (!product) return;
@@ -513,6 +688,11 @@
 
         updateCompareUI();
         refreshCardSelectionStates();
+
+        // If exactly 2 products are selected, automatically open the compare modal popup
+        if (selectedForCompare.length === 2) {
+            openCompareModal();
+        }
     }
 
     function updateCompareUI() {
@@ -535,10 +715,10 @@
             const btn = document.getElementById(`compare_btn_${index}`);
             if (btn) {
                 if (isSelected) {
-                    btn.className = "w-full py-2 px-3 rounded-lg text-xs font-semibold bg-emerald-600 text-white transition flex items-center justify-center space-x-1 shadow-sm";
-                    btn.innerHTML = `<span>Selected for Compare ✓</span>`;
+                    btn.className = "py-2 px-3 rounded-lg text-xs font-semibold bg-emerald-600 text-white transition flex items-center justify-center shadow-sm";
+                    btn.innerHTML = `<span>Selected ✓</span>`;
                 } else {
-                    btn.className = "w-full py-2 px-3 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center justify-center space-x-1 shadow-sm";
+                    btn.className = "py-2 px-3 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center justify-center shadow-sm";
                     btn.innerHTML = `<span>Compare (+)</span>`;
                 }
             }
@@ -591,48 +771,43 @@
             const isWinner = (selectedForCompare.length === 2 && idx === winnerIndex);
 
             colsHtml += `
-                    <div class="flex-1 bg-white border ${isWinner ? 'border-emerald-500 ring-2 ring-emerald-500/30 shadow-md' : 'border-slate-200'} rounded-2xl p-3 sm:p-4 flex flex-col justify-between relative overflow-hidden">
-                        ${isWinner ? `
-                            <div class="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl tracking-wider uppercase shadow">
-                                ★ Winner
-                            </div>
-                        ` : ''}
-                        <div>
-                            <div class="h-24 sm:h-32 bg-slate-50 rounded-xl p-2 mb-3 flex items-center justify-center">
-                                <img src="${imageUrl}" alt="${title}" class="max-h-full max-w-full object-contain" referrerpolicy="no-referrer" />
-                            </div>
-                            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-100 text-blue-800">${retailer}</span>
-                            <h4 class="font-bold text-slate-800 text-xs sm:text-sm mt-2 line-clamp-2">${title}</h4>
+                <div class="flex-1 bg-white border ${isWinner ? 'border-emerald-500 ring-2 ring-emerald-500/30 shadow-md' : 'border-slate-200'} rounded-2xl p-3 sm:p-4 flex flex-col justify-between relative overflow-hidden">
+                    ${isWinner ? `
+                        <div class="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl tracking-wider uppercase shadow">
+                            ★ Winner
                         </div>
-                        <div class="mt-4 pt-3 border-t border-slate-100 space-y-2 text-xs">
-                            <div class="flex justify-between items-center">
-                                <span class="text-slate-500 font-medium">Brand:</span>
-                                <span class="font-semibold text-slate-800">${brand}</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-slate-500 font-medium">RAM:</span>
-                                <span class="font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">${ram}</span>
-                            </div>
-                            <div class="flex justify-between items-center pt-2 border-t border-slate-100">
-                                <span class="text-slate-500 font-medium">Price:</span>
-                                <span class="text-sm sm:text-base font-extrabold text-slate-900">AED ${priceFormatted}</span>
-                            </div>
+                    ` : ''}
+                    <div>
+                        <div class="h-24 sm:h-32 bg-slate-50 rounded-xl p-2 mb-3 flex items-center justify-center">
+                            <img src="${imageUrl}" alt="${title}" class="max-h-full max-w-full object-contain" referrerpolicy="no-referrer" />
                         </div>
-                        <div class="mt-4">
-                            <a href="${url}" target="_blank" rel="noopener noreferrer" class="w-full block text-center py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow transition">
-                                View Store
-                            </a>
+                        <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-100 text-blue-800">${retailer}</span>
+                        <h4 class="font-bold text-slate-800 text-xs sm:text-sm mt-2 line-clamp-2">${title}</h4>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 space-y-2 text-xs">
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500 font-medium">Brand:</span>
+                            <span class="font-semibold text-slate-800">${brand}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500 font-medium">RAM:</span>
+                            <span class="font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">${ram}</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                            <span class="text-slate-500 font-medium">Price:</span>
+                            <span class="text-sm sm:text-base font-extrabold text-slate-900">AED ${priceFormatted}</span>
                         </div>
                     </div>
-                `;
-        });
-
-        modalContent.innerHTML = `
-                <div class="grid grid-cols-2 gap-2 sm:gap-4">
-                    ${colsHtml}
+                    <div class="mt-4">
+                        <a href="${url}" target="_blank" rel="noopener noreferrer" class="w-full block text-center py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow transition">
+                            View Store
+                        </a>
+                    </div>
                 </div>
             `;
+        });
 
+        modalContent.innerHTML = colsHtml;
         document.getElementById('compareModal').classList.remove('hidden');
     }
 
@@ -640,124 +815,22 @@
         document.getElementById('compareModal').classList.add('hidden');
     }
 
-    function createProductCard(product, globalIndex) {
-        const title = product.Name || product.name || 'Laptop';
-        const brand = getProductBrand(product) || 'Brand';
-        const rawPrice = getProductPrice(product);
-        const priceFormatted = rawPrice.toLocaleString();
-        const url = product.Url || product.url || '#';
-        const retailer = product.Retailer || product.retailer || 'Store';
-        const retailerImage = product.RetailerImage || product.retailerImage;
-
-        const retailerKey = (retailer && RETAILERS[retailer]) ? retailer : 'SharafDG';
-        const retailerConfig = RETAILERS[retailerKey];
-
-        const isSharafDG = retailer.toString().trim().toLowerCase().includes('sharaf');
-
-        const sharafDgDummyUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv9xvEsNe-LtVTOl6Yvcf_yNshKUEDaZ9kYgAoK5jtVw&s';
-        const imageUrl = isSharafDG
-            ? sharafDgDummyUrl
-            : (product.ImageUrl || product.imageUrl || 'https://via.placeholder.com/300');
-
-        const isSelected = selectedForCompare.some(p => getProductId(p) === getProductId(product));
-
-        const imageContainerHtml = `
-                <div class="h-48 sm:h-36 bg-slate-50 rounded-lg p-3 mb-3 flex items-center justify-center overflow-hidden">
-                    <a href="${url}" target="_blank" rel="noopener noreferrer" class="w-full h-full flex items-center justify-center">
-                        <img src="${imageUrl}" alt="${title}" class="max-h-full max-w-full object-contain group-hover:scale-105 transition duration-300" referrerpolicy="no-referrer" loading="lazy"/>
-                    </a>
-                </div>
-            `;
-
-        const visitStoreButtonHtml = `
-                <a href="${url}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-lg text-xs font-semibold ${retailerConfig.btnColor} transition flex items-center space-x-1 shadow-sm">
-                    <span>Visit Store</span>
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                </a>
-            `;
-
-        const compareBtnClass = isSelected
-            ? "w-full py-2 px-3 rounded-lg text-xs font-semibold bg-emerald-600 text-white transition flex items-center justify-center space-x-1 shadow-sm"
-            : "w-full py-2 px-3 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center justify-center space-x-1 shadow-sm";
-
-        const compareBtnText = isSelected ? "Selected for Compare ✓" : "Compare (+)";
-
-        const card = document.createElement('div');
-        card.className = `bg-white rounded-xl border border-slate-200/90 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden group ${retailerConfig.borderHover}`;
-
-        card.innerHTML = `
-                <div class="p-4 flex-1 flex flex-col">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${retailerConfig.badgeClass}">
-                            ${retailer}
-                        </span>
-                        ${retailerImage ? `<img src="${retailerImage}" alt="${retailer}" class="h-4 max-w-[60px] object-contain" />` : ''}
-                    </div>
-                    ${imageContainerHtml}
-                    <a href="${url}" target="_blank" rel="noopener noreferrer" class="text-sm sm:text-base font-bold text-slate-800 mb-2 group-hover:text-blue-600 transition" title="${title}">
-                        ${title}
-                    </a>
-                    <div class="mt-auto pt-2 flex items-center justify-between text-[11px] sm:text-xs text-slate-500 border-t border-slate-100">
-                        <span class="font-medium text-slate-400">Brand:</span>
-                        <span class="font-semibold text-slate-700">${brand}</span>
-                    </div>
-                </div>
-                <div class="px-4 py-3 bg-slate-50/80 border-t border-slate-100 flex flex-col gap-2.5">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <span class="text-[10px] text-slate-400 block font-medium">Price</span>
-                            <span class="text-base sm:text-lg font-extrabold text-slate-900">AED ${priceFormatted}</span>
-                        </div>
-                        ${visitStoreButtonHtml}
-                    </div>
-                    <button id="compare_btn_${globalIndex}" onclick='toggleCompare(${globalIndex})' class="${compareBtnClass}">
-                        <span>${compareBtnText}</span>
-                    </button>
-                </div>
-            `;
-
-        return card;
-    }
-
-    function setupIntersectionObserver() {
-        if (observer) observer.disconnect();
-
-        const trigger = document.getElementById('infiniteScrollTrigger');
-
-        observer = new IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting && !isLoading) {
-                const startIndex = currentPage * pageSize;
-                if (startIndex < allFilteredProducts.length) {
-                    isLoading = true;
-                    document.getElementById('scrollSpinner').classList.remove('hidden');
-
-                    setTimeout(() => {
-                        currentPage++;
-                        renderNextPage();
-                    }, 300);
-                }
-            }
-        }, { rootMargin: '100px' });
-
-        observer.observe(trigger);
-    }
-
     function clearCacheAndReload() {
-        sessionStorage.clear();
-        selectedForCompare = [];
-        updateCompareUI();
+        const priceInput = document.getElementById('maxPriceInput');
+        const maxPrice = parseFloat(priceInput.value) || 4000;
+        sessionStorage.removeItem(`findmylaptop_results_${maxPrice}`);
         handleSearch();
     }
 
-    function showError(msg) {
-        const grid = document.getElementById('productGrid');
-        grid.innerHTML = `<div class="col-span-full py-8 text-center text-rose-600 font-medium">${msg}</div>`;
-    }
-
-    window.onload = function() {
-        updateBrandDropdown(rawInitialData);
-        allFilteredProducts = filterAndSortProducts(rawInitialData, currentMaxPrice);
-        updateSummaryBar(currentMaxPrice, false);
-        renderNextPage();
-    };
+    // Initial render call on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        if (rawInitialData && rawInitialData.length > 0) {
+            updateBrandDropdown(rawInitialData);
+            allFilteredProducts = filterAndSortProducts(rawInitialData, currentMaxPrice);
+            updateSummaryBar(currentMaxPrice, false);
+            renderNextPage();
+        } else {
+            handleSearch();
+        }
+    });
 </script>

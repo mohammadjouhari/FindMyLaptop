@@ -29,7 +29,7 @@ namespace FindMyLaptop.Helpers
             // Payload sending clean parameters without broken facet string escaping
             var payload = new
             {
-                @params = "query=laptops&hitsPerPage=200&"
+                @params = "query=laptops&hitsPerPage=1000&"
             };
 
             request.Content = JsonContent.Create(payload);
