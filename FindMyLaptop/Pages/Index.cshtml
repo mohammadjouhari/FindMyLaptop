@@ -338,59 +338,53 @@
         });
     }
 
-    function sortProductsWithInterleavedJumbo(products) {
+    function sortProductsWithInterleavedRetailers(products) {
         if (!products || !Array.isArray(products)) return [];
 
         const retailerBuckets = {};
-        const jumboProducts = [];
 
         products.forEach(p => {
             const retailer = (p.Retailer || p.retailer || 'Other').toString().trim();
-            const lowerKey = retailer.toLowerCase();
-
-            if (lowerKey.includes('jumbo')) {
-                jumboProducts.push(p);
-            } else {
-                if (!retailerBuckets[retailer]) {
-                    retailerBuckets[retailer] = [];
-                }
-                retailerBuckets[retailer].push(p);
+            if (!retailerBuckets[retailer]) {
+                retailerBuckets[retailer] = [];
             }
+            retailerBuckets[retailer].push(p);
         });
 
-        // Sort Jumbo products highest price first before slicing the top 200 pool
-        jumboProducts.sort((a, b) => getProductPrice(b) - getProductPrice(a));
+        // For each retailer bucket, sort highest price first
+        for (const key in retailerBuckets) {
+            retailerBuckets[key].sort((a, b) => getProductPrice(b) - getProductPrice(a));
+        }
 
-        const jumboPool = jumboProducts.slice(0, 200);
-        const jumboRemaining = jumboProducts.slice(200);
+        const pools = {};
+        const remaining = {};
 
-        if (jumboPool.length > 0) {
-            retailerBuckets['Jumbo'] = jumboPool;
+        for (const key in retailerBuckets) {
+            pools[key] = retailerBuckets[key].slice(0, 200);
+            remaining[key] = retailerBuckets[key].slice(200);
         }
 
         const interleavedList = [];
-        const nonJumboRemaining = [];
         let itemAddedInRound = true;
         let roundIndex = 0;
 
         while (itemAddedInRound && roundIndex < 200) {
             itemAddedInRound = false;
-            for (const key in retailerBuckets) {
-                if (retailerBuckets[key].length > roundIndex) {
-                    interleavedList.push(retailerBuckets[key][roundIndex]);
+            for (const key in pools) {
+                if (pools[key].length > roundIndex) {
+                    interleavedList.push(pools[key][roundIndex]);
                     itemAddedInRound = true;
                 }
             }
             roundIndex++;
         }
 
-        for (const key in retailerBuckets) {
-            if (key !== 'Jumbo' && retailerBuckets[key].length > 200) {
-                nonJumboRemaining.push(...retailerBuckets[key].slice(200));
-            }
+        const allRemaining = [];
+        for (const key in remaining) {
+            allRemaining.push(...remaining[key]);
         }
 
-        return [...interleavedList, ...nonJumboRemaining, ...jumboRemaining];
+        return [...interleavedList, ...allRemaining];
     }
 
     function filterAndSortProducts(products, maxPrice) {
@@ -414,9 +408,8 @@
         if (sortMode === 'price_low_high') {
             return filtered.sort((a, b) => getProductPrice(a) - getProductPrice(b));
         } else {
-            // Default interleaved sorting (with Jumbo pool sorted highest price first)
-            const sortedByPrice = filtered.sort((a, b) => getProductPrice(a) - getProductPrice(b));
-            return sortProductsWithInterleavedJumbo(sortedByPrice);
+            // Default interleaved sorting with highest price first per retailer pool (up to 200 items each)
+            return sortProductsWithInterleavedRetailers(filtered);
         }
     }
 
