@@ -15,6 +15,7 @@ C:\Users\m_243\source\repos\FindMyLaptop\FindMyLaptop\obj\Debug\net10.0\FindMyLa
 C:\Users\m_243\source\repos\FindMyLaptop\FindMyLaptop\obj\Debug\net10.0\FindMyLaptop.MvcApplicationPartsAssemblyInfo.cache
 C:\Users\m_243\source\repos\FindMyLaptop\FindMyLaptop\obj\Debug\net10.0\FindMyLaptop.RazorAssemblyInfo.cache
 C:\Users\m_243\source\repos\FindMyLaptop\FindMyLaptop\obj\Debug\net10.0\FindMyLaptop.RazorAssemblyInfo.cs
+C:\Users\m_243\source\repos\FindMyLaptop\FindMyLaptop\obj\Debug\net10.0\FindMyLaptop.sourcelink.json
 C:\Users\m_243\source\repos\FindMyLaptop\FindMyLaptop\obj\Debug\net10.0\rjimswa.dswa.cache.json
 C:\Users\m_243\source\repos\FindMyLaptop\FindMyLaptop\obj\Debug\net10.0\rjsmrazor.dswa.cache.json
 C:\Users\m_243\source\repos\FindMyLaptop\FindMyLaptop\obj\Debug\net10.0\rjsmcshtml.dswa.cache.json
