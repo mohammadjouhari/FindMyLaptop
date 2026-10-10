@@ -358,6 +358,9 @@
             }
         });
 
+        // Sort Jumbo products highest price first before slicing the top 200 pool
+        jumboProducts.sort((a, b) => getProductPrice(b) - getProductPrice(a));
+
         const jumboPool = jumboProducts.slice(0, 200);
         const jumboRemaining = jumboProducts.slice(200);
 
@@ -411,7 +414,7 @@
         if (sortMode === 'price_low_high') {
             return filtered.sort((a, b) => getProductPrice(a) - getProductPrice(b));
         } else {
-            // Default interleaved sorting
+            // Default interleaved sorting (with Jumbo pool sorted highest price first)
             const sortedByPrice = filtered.sort((a, b) => getProductPrice(a) - getProductPrice(b));
             return sortProductsWithInterleavedJumbo(sortedByPrice);
         }
