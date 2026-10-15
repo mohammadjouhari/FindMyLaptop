@@ -308,6 +308,11 @@
         return (product.brand || product.Brand || '').toString().trim();
     }
 
+    function getProductRetailer(product) {
+        if (!product) return '';
+        return (product.Retailer || product.retailer || '').toString().trim();
+    }
+
     function getProductRamValue(product) {
         if (!product) return 0;
         const name = (product.Name || product.name || '').toString();
@@ -352,7 +357,7 @@
         const retailerBuckets = {};
 
         products.forEach(p => {
-            const retailer = (p.Retailer || p.retailer || 'Other').toString().trim();
+            const retailer = getProductRetailer(p) || 'Other';
             if (!retailerBuckets[retailer]) {
                 retailerBuckets[retailer] = [];
             }
@@ -403,6 +408,14 @@
         const filtered = products.filter(p => {
             const price = getProductPrice(p);
             if (price <= 0 || price > maxPrice) return false;
+
+            // If sorting by Low to High, hide AlErshad products under 1000
+            if (sortMode === 'price_low_high') {
+                const retailer = getProductRetailer(p);
+                if (retailer.toLowerCase() === 'alershad' && price < 1000) {
+                    return false;
+                }
+            }
 
             if (selectedBrand) {
                 const brand = getProductBrand(p);
@@ -682,7 +695,6 @@
             selectedForCompare.splice(existingIndex, 1);
         } else {
             if (selectedForCompare.length >= 2) {
-                // If already 2 selected, replace the second one or notify
                 selectedForCompare.pop();
             }
             selectedForCompare.push(product);
@@ -691,7 +703,6 @@
         updateCompareUI();
         refreshCardSelectionStates();
 
-        // Automatically open modal once 2 items are selected
         if (selectedForCompare.length === 2) {
             openCompareModal();
         }
