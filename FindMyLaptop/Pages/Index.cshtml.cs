@@ -63,23 +63,59 @@ namespace FindMyLaptop.Pages
             // 2. Filter and sort by price
             var alershad = FilterAndSort(alershadRaw, maxPrice);
 
+            var filePath2 = Path.Combine(Directory.GetCurrentDirectory(), "data", "carrefouruae.json");
+            var jsonContent2 = await System.IO.File.ReadAllTextAsync(filePath2);
 
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                
+            };
 
+            List<ProductDto> carrefouruaeRaw = JsonSerializer.Deserialize<List<ProductDto>>(jsonContent2, options) ?? new List<ProductDto>();
 
+            // 1. Filter and sort by unique names
+            var distinctRaw = carrefouruaeRaw
+                 .DistinctBy(p => p.Name?.Trim())
+                 .Where(p => p.Price > 1000)
+                 .ToList();
 
+            // 2. Filter and sort on the unique list
+            var carrefouruae = FilterAndSort(distinctRaw, maxPrice);
 
+            // 3. Map to final DTOs
+            var carrefouruaeProducts = carrefouruae.Select(p => new ProductDto
+            {
+                Name = p.Name,
+                Brand = p.Brand,
+                Price = p.Price,
+                Url = p.Url,
+                ImageUrl = p.ImageUrl,
+                RetailerImage = "/images/carrefour.png",
+                Retailer = "Carrefour"
+            }).ToList();
 
-
+            // 4. Interleave products from all stores
             var interleavedProducts = new List<ProductDto>();
-            int maxCount = Math.Max(Math.Max(sharafdg.Count, jumbo.Count), Math.Max(emax.Count, alershad.Count));
 
-            // 2. Take 1 item from each store per loop iteration
+            // Calculate max count across all 5 stores
+            int maxCount = new[]
+            {
+                sharafdg.Count,
+                jumbo.Count,
+                emax.Count,
+                alershad.Count,
+                carrefouruaeProducts.Count
+            }.Max();
+
+            // Take 1 item from each store per loop iteration
             for (int i = 0; i < maxCount; i++)
             {
                 if (i < sharafdg.Count) interleavedProducts.Add(sharafdg[i]);
                 if (i < jumbo.Count) interleavedProducts.Add(jumbo[i]);
                 if (i < emax.Count) interleavedProducts.Add(emax[i]);
                 if (i < alershad.Count) interleavedProducts.Add(alershad[i]);
+                if (i < carrefouruaeProducts.Count) interleavedProducts.Add(carrefouruaeProducts[i]);
             }
 
             return interleavedProducts;

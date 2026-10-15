@@ -99,3 +99,4 @@ C:\Users\m_243\source\repos\FindMyLaptop\FindMyLaptop\obj\Debug\net10.0\FindMyLa
 C:\Users\m_243\source\repos\FindMyLaptop\FindMyLaptop\obj\Debug\net10.0\FindMyLaptop.genruntimeconfig.cache
 C:\Users\m_243\source\repos\FindMyLaptop\FindMyLaptop\obj\Debug\net10.0\ref\FindMyLaptop.dll
 C:\Users\m_243\source\repos\FindMyLaptop\FindMyLaptop\obj\Debug\net10.0\FindMyLa.154E5CEE.Up2Date
+C:\Users\m_243\source\repos\FindMyLaptop\FindMyLaptop\bin\Debug\net10.0\Data\carrefouruae.json

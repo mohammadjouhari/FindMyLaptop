@@ -111,7 +111,7 @@
             Find the Best Laptop Within Your Budget
         </h2>
         <p class="mt-2 text-xs sm:text-sm text-slate-500 max-w-lg mx-auto">
-            Compare real-time options across <span class="text-rose-600 font-semibold">SharafDG</span>, <span class="text-sky-600 font-semibold">Jumbo</span>, <span class="text-amber-600 font-semibold">Emax</span>, and <span class="text-purple-600 font-semibold">AlErshad</span> instantly.
+            Compare real-time options across <span class="text-rose-600 font-semibold">SharafDG</span>, <span class="text-sky-600 font-semibold">Jumbo</span>, <span class="text-amber-600 font-semibold">Emax</span>, <span class="text-purple-600 font-semibold">AlErshad</span>, and <span class="text-emerald-600 font-semibold">Carrefour</span> instantly.
         </p>
 
         <!-- Search & Brand Filter Form -->
@@ -294,6 +294,12 @@
             badgeClass: 'bg-purple-600 text-white',
             borderHover: 'hover:border-purple-300',
             btnColor: 'bg-purple-50 text-purple-700 hover:bg-purple-100'
+        },
+        'Carrefour': {
+                name: 'Carrefour',
+            badgeClass: 'bg-emerald-600 text-white',
+            borderHover: 'hover:border-emerald-300',
+            btnColor: 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
         }
     };
 
@@ -301,117 +307,116 @@
         if (!product) return 0;
         const val = product.price !== undefined ? product.price : product.Price;
         return parseFloat(val) || 0;
-    }
+        }
 
-    function getProductBrand(product) {
+        function getProductBrand(product) {
         if (!product) return '';
         return (product.brand || product.Brand || '').toString().trim();
-    }
+        }
 
-    function getProductRetailer(product) {
+       function getProductRetailer(product) {
         if (!product) return '';
         return (product.Retailer || product.retailer || '').toString().trim();
-    }
+        }
 
-    function getProductRamValue(product) {
+      function getProductRamValue(product) {
         if (!product) return 0;
         const name = (product.Name || product.name || '').toString();
-        const ramMatch = name.match(/(\d+)\s*(?:GB|gb)\b(?:\s*RAM)?/i);
+            const ramMatch = name.match(/(\d+)\s*(?:GB|gb)\b(?:\s*RAM)?/i);
         if (ramMatch && ramMatch[1]) {
             return parseInt(ramMatch[1], 10) || 0;
         }
         return 0;
-    }
+        }
 
-    function getProductRamText(product) {
+       function getProductRamText(product) {
         const val = getProductRamValue(product);
         return val > 0 ? `${val} GB` : 'Standard';
-    }
+        }
 
-    function getProductId(product) {
+       function getProductId(product) {
         if (!product) return '';
-        return product.Url || product.url || product.Name || product.name || JSON.stringify(product);
-    }
+            return product.Url || product.url || product.Name || product.name || JSON.stringify(product);
+        }
 
-    function updateBrandDropdown(products) {
+       function updateBrandDropdown(products) {
         const brandSelect = document.getElementById('brandSelect');
-        const currentSelectedBrand = brandSelect.value;
+         const currentSelectedBrand = brandSelect.value;
 
-        const brands = [...new Set(products.map(p => getProductBrand(p)).filter(b => b.length > 0))].sort();
+            const brands = [...new Set(products.map(p => getProductBrand(p)).filter(b => b.length > 0))].sort();
 
-        brandSelect.innerHTML = '<option value="">All Brands</option>';
-        brands.forEach(brand => {
+          brandSelect.innerHTML = '<option value="">All Brands</option>';
+           brands.forEach(brand => {
             const opt = document.createElement('option');
             opt.value = brand;
             opt.textContent = brand;
-            if (brand === currentSelectedBrand) {
+                if (brand === currentSelectedBrand) {
                 opt.selected = true;
             }
-            brandSelect.appendChild(opt);
+                brandSelect.appendChild(opt);
         });
-    }
+        }
 
-    function sortProductsWithInterleavedRetailers(products) {
+         function sortProductsWithInterleavedRetailers(products) {
         if (!products || !Array.isArray(products)) return [];
 
-        const retailerBuckets = {};
+          const retailerBuckets = {};
 
         products.forEach(p => {
-            const retailer = getProductRetailer(p) || 'Other';
+                const retailer = getProductRetailer(p) || 'Other';
             if (!retailerBuckets[retailer]) {
                 retailerBuckets[retailer] = [];
             }
-            retailerBuckets[retailer].push(p);
+                retailerBuckets[retailer].push(p);
         });
 
-        for (const key in retailerBuckets) {
+            for (const key in retailerBuckets) {
             retailerBuckets[key].sort((a, b) => getProductPrice(b) - getProductPrice(a));
-        }
+            }
 
         const pools = {};
-        const remaining = {};
+            const remaining = {};
 
         for (const key in retailerBuckets) {
             pools[key] = retailerBuckets[key].slice(0, 200);
-            remaining[key] = retailerBuckets[key].slice(200);
+                remaining[key] = retailerBuckets[key].slice(200);
         }
 
-        const interleavedList = [];
-        let itemAddedInRound = true;
-        let roundIndex = 0;
+         const interleavedList = [];
+            let itemAddedInRound = true;
+         let roundIndex = 0;
 
-        while (itemAddedInRound && roundIndex < 200) {
+          while (itemAddedInRound && roundIndex < 200) {
             itemAddedInRound = false;
             for (const key in pools) {
                 if (pools[key].length > roundIndex) {
-                    interleavedList.push(pools[key][roundIndex]);
+                        interleavedList.push(pools[key][roundIndex]);
                     itemAddedInRound = true;
                 }
             }
             roundIndex++;
-        }
+            }
 
         const allRemaining = [];
-        for (const key in remaining) {
+            for (const key in remaining) {
             allRemaining.push(...remaining[key]);
         }
 
         return [...interleavedList, ...allRemaining];
-    }
+        }
 
     function filterAndSortProducts(products, maxPrice) {
-        if (!products || !Array.isArray(products)) return [];
+           if (!products || !Array.isArray(products)) return [];
 
-        const selectedBrand = document.getElementById('brandSelect').value;
-        const sortMode = document.getElementById('sortSelect').value;
+            const selectedBrand = document.getElementById('brandSelect').value;
+          const sortMode = document.getElementById('sortSelect').value;
 
-        const filtered = products.filter(p => {
-            const price = getProductPrice(p);
-            if (price <= 0 || price > maxPrice) return false;
+          const filtered = products.filter(p => {
+              const price = getProductPrice(p);
+              if (price <= 0 || price > maxPrice) return false;
 
-            // If sorting by Low to High, hide AlErshad products under 1000
             if (sortMode === 'price_low_high') {
-                const retailer = getProductRetailer(p);
+                    const retailer = getProductRetailer(p);
                 if (retailer.toLowerCase() === 'alershad' && price < 1000) {
                     return false;
                 }
@@ -419,65 +424,66 @@
 
             if (selectedBrand) {
                 const brand = getProductBrand(p);
-                if (brand.toLowerCase() !== selectedBrand.toLowerCase()) return false;
+                    if (brand.toLowerCase() !== selectedBrand.toLowerCase()) return false;
             }
 
             return true;
-        });
+            });
 
         if (sortMode === 'price_low_high') {
-            return filtered.sort((a, b) => getProductPrice(a) - getProductPrice(b));
+                return filtered.sort((a, b) => getProductPrice(a) - getProductPrice(b));
         } else {
             return sortProductsWithInterleavedRetailers(filtered);
         }
-    }
+        }
 
-    function handleSortChange() {
+        function handleSortChange() {
         const priceInput = document.getElementById('maxPriceInput');
-        const maxPrice = parseFloat(priceInput.value) || 4000;
+           const maxPrice = parseFloat(priceInput.value) || 4000;
         const cacheKey = `findmylaptop_results_${maxPrice}`;
-        const cachedData = sessionStorage.getItem(cacheKey);
+            const cachedData = sessionStorage.getItem(cacheKey);
 
-        if (cachedData) {
+          if (cachedData) {
             const rawParsed = JSON.parse(cachedData);
             resetGrid();
             allFilteredProducts = filterAndSortProducts(rawParsed, maxPrice);
             updateSummaryBar(maxPrice, true);
-            renderNextPage();
+                renderNextPage();
         } else {
             handleSearch();
+            }
         }
-    }
 
-    async function handleSearch(event) {
+        async function handleSearch(event) {
         if (event) event.preventDefault();
 
         const priceInput = document.getElementById('maxPriceInput');
         const maxPrice = parseFloat(priceInput.value);
 
-        if (!maxPrice || maxPrice <= 0) return;
+            if (!maxPrice || maxPrice <= 0) return;
 
         currentMaxPrice = maxPrice;
-        const cacheKey = `findmylaptop_results_${maxPrice}`;
+            const cacheKey = `findmylaptop_results_${maxPrice}`;
         const cachedData = sessionStorage.getItem(cacheKey);
 
-        resetGrid();
-        showSkeletons();
+             resetGrid();
+              showSkeletons();
 
-        if (cachedData) {
-            setTimeout(() => {
+         if (cachedData) {
+                setTimeout(() => {
                 const rawParsed = JSON.parse(cachedData);
                 updateBrandDropdown(rawParsed);
                 allFilteredProducts = filterAndSortProducts(rawParsed, maxPrice);
-                updateSummaryBar(maxPrice, true);
+                    updateSummaryBar(maxPrice, true);
                 renderNextPage();
-            }, 250);
-        } else {
-            updateSummaryBar(maxPrice, false);
+             }, 250);
 
-            try {
+        } else {
+          updateSummaryBar(maxPrice, false);
+
+             try {
                 const response = await fetch(`?handler=Search&maxPrice=${maxPrice}`);
-                if (!response.ok) throw new Error("Server response failed");
+                    if (!response.ok) throw new Error("Server response failed");
 
                 const rawProducts = await response.json();
                 updateBrandDropdown(rawProducts);
@@ -485,7 +491,7 @@
 
                 sessionStorage.setItem(cacheKey, JSON.stringify(rawProducts));
                 renderNextPage();
-            } catch (err) {
+                } catch (err) {
                 console.error("Error fetching laptops from server:", err);
             }
         }
@@ -494,147 +500,147 @@
     function setBudget(amount) {
         document.getElementById('maxPriceInput').value = amount;
         handleSearch();
-    }
+        }
 
     function resetAllFilters() {
-        document.getElementById('maxPriceInput').value = 4000;
+            document.getElementById('maxPriceInput').value = 4000;
         document.getElementById('brandSelect').value = "";
         document.getElementById('sortSelect').value = "retailer";
         handleSearch();
-    }
+        }
 
     function clearCompareSelection() {
-        selectedForCompare = [];
+            selectedForCompare = [];
         updateCompareUI();
         refreshCardSelectionStates();
         closeCompareModal();
-    }
+        }
 
-    function resetGrid() {
+       function resetGrid() {
         currentPage = 1;
         pageSize = getPageSize();
-        allFilteredProducts = [];
+            allFilteredProducts = [];
         document.getElementById('productGrid').innerHTML = '';
         document.getElementById('scrollMessage').textContent = '';
         if (observer) observer.disconnect();
-    }
+        }
 
-    function showSkeletons() {
-        const grid = document.getElementById('productGrid');
-        grid.innerHTML = '';
-        const skeletonCount = window.innerWidth < 640 ? 4 : 8;
-        for (let i = 0; i < skeletonCount; i++) {
-            const skel = document.createElement('div');
-            skel.className = 'bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-3';
-            skel.innerHTML = `
+       function showSkeletons() {
+          const grid = document.getElementById('productGrid');
+          grid.innerHTML = '';
+            const skeletonCount = window.innerWidth < 640 ? 4 : 8;
+            for (let i = 0; i < skeletonCount; i++) {
+                const skel = document.createElement('div');
+                skel.className = 'bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-3';
+                skel.innerHTML = `
                     <div class="h-4 skeleton rounded w-1/3"></div>
                     <div class="h-44 sm:h-36 skeleton rounded-lg"></div>
                     <div class="h-4 skeleton rounded w-3/4"></div>
                     <div class="h-3 skeleton rounded w-1/2"></div>
-                    <div class="pt-2 flex justify-between items-center">
-                        <div class="h-5 skeleton rounded w-1/3"></div>
-                        <div class="h-8 skeleton rounded-lg w-1/4"></div>
+                <div class="pt-2 flex justify-between items-center">
+                    <div class="h-5 skeleton rounded w-1/3"></div>
+                    <div class="h-8 skeleton rounded-lg w-1/4"></div>
                     </div>
-                `;
+            `;
             grid.appendChild(skel);
         }
-    }
+        }
 
-    function updateSummaryBar(price, isCached) {
+        function updateSummaryBar(price, isCached) {
         const bar = document.getElementById('filterSummaryBar');
         const summaryText = document.getElementById('summaryText');
         const cacheBadge = document.getElementById('cacheBadge');
-        const selectedBrand = document.getElementById('brandSelect').value;
+          const selectedBrand = document.getElementById('brandSelect').value;
 
         bar.classList.remove('hidden');
-        let text = `Laptops under AED ${price.toLocaleString()}`;
+            let text = `Laptops under AED ${price.toLocaleString()}`;
         if (selectedBrand) {
             text += ` • Brand: ${selectedBrand}`;
-        }
+            }
         summaryText.textContent = text;
 
         if (isCached) {
             cacheBadge.classList.remove('hidden');
-            cacheBadge.textContent = 'Loaded from Session Storage';
+                cacheBadge.textContent = 'Loaded from Session Storage';
         } else {
             cacheBadge.classList.add('hidden');
         }
-    }
+        }
 
-    function renderNextPage() {
-        const grid = document.getElementById('productGrid');
+     function renderNextPage() {
+            const grid = document.getElementById('productGrid');
         const spinner = document.getElementById('scrollSpinner');
         const message = document.getElementById('scrollMessage');
 
-        if (currentPage === 1) grid.innerHTML = '';
+            if (currentPage === 1) grid.innerHTML = '';
 
-        if (!allFilteredProducts || allFilteredProducts.length === 0) {
-            grid.innerHTML = `
+            if (!allFilteredProducts || allFilteredProducts.length === 0) {
+                grid.innerHTML = `
                     <div class="col-span-full py-12 text-center">
                         <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
                             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        </div>
-                        <h3 class="text-base font-bold text-slate-800">No Laptops Found</h3>
-                        <p class="text-xs text-slate-500 mt-1">Try increasing your budget limit or changing filters above.</p>
                     </div>
+                    <h3 class="text-base font-bold text-slate-800">No Laptops Found</h3>
+                    <p class="text-xs text-slate-500 mt-1">Try increasing your budget limit or changing filters above.</p>
+                </div>
                 `;
             spinner.classList.add('hidden');
             message.textContent = '';
             return;
-        }
+            }
 
-        const startIndex = (currentPage - 1) * pageSize;
-        const endIndex = startIndex + pageSize;
-        const pageItems = allFilteredProducts.slice(startIndex, endIndex);
+            const startIndex = (currentPage - 1) * pageSize;
+          const endIndex = startIndex + pageSize;
+          const pageItems = allFilteredProducts.slice(startIndex, endIndex);
 
-        if (pageItems.length === 0 && currentPage > 1) {
+            if (pageItems.length === 0 && currentPage > 1) {
             spinner.classList.add('hidden');
             message.textContent = `Showing all ${allFilteredProducts.length} matching laptops.`;
             return;
-        }
+            }
 
-        pageItems.forEach((product, idx) => {
+            pageItems.forEach((product, idx) => {
             const globalIndex = startIndex + idx;
             const card = createProductCard(product, globalIndex);
-            grid.appendChild(card);
+                grid.appendChild(card);
         });
 
-        isLoading = false;
+            isLoading = false;
         spinner.classList.add('hidden');
 
-        if (endIndex >= allFilteredProducts.length) {
+         if (endIndex >= allFilteredProducts.length) {
             message.textContent = `Showing all ${allFilteredProducts.length} matching laptops.`;
             if (observer) observer.disconnect();
-        } else {
+            } else {
             message.textContent = 'Scroll for more options...';
             setupIntersectionObserver();
         }
-    }
+        }
 
-    function createProductCard(product, globalIndex) {
+        function createProductCard(product, globalIndex) {
         const title = product.Name || product.name || 'Laptop';
         const rawPrice = getProductPrice(product);
         const price = rawPrice.toLocaleString();
         const brand = getProductBrand(product) || 'Brand';
         const ram = getProductRamText(product);
-        const retailer = product.Retailer || product.retailer || 'Store';
+            const retailer = product.Retailer || product.retailer || 'Store';
         const url = product.Url || product.url || '#';
-        const isSharafDG = retailer.toString().trim().toLowerCase().includes('sharaf');
-        const sharafDgDummyUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv9xvEsNe-LtVTOl6Yvcf_yNshKUEDaZ9kYgAoK5jtVw&s';
-        const imageUrl = isSharafDG ? sharafDgDummyUrl : (product.ImageUrl || product.imageUrl || 'https://via.placeholder.com/300');
+           const isSharafDG = retailer.toString().trim().toLowerCase().includes('sharaf');
+         const sharafDgDummyUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv9xvEsNe-LtVTOl6Yvcf_yNshKUEDaZ9kYgAoK5jtVw&s';
+            const imageUrl = isSharafDG ? sharafDgDummyUrl : (product.ImageUrl || product.imageUrl || 'https://via.placeholder.com/300');
 
-        const retailerConfig = RETAILERS[retailer] || {
+            const retailerConfig = RETAILERS[retailer] || {
             badgeClass: 'bg-slate-600 text-white',
             borderHover: 'hover:border-slate-300',
-            btnColor: 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                btnColor: 'bg-slate-50 text-slate-700 hover:bg-slate-100'
         };
 
         const pId = getProductId(product);
-        const isSelected = selectedForCompare.some(p => getProductId(p) === pId);
+            const isSelected = selectedForCompare.some(p => getProductId(p) === pId);
 
-        const card = document.createElement('div');
-        card.className = `bg-white rounded-2xl p-4 border border-slate-200 ${retailerConfig.borderHover} shadow-sm hover:shadow-md transition-all flex flex-col justify-between group`;
-        card.innerHTML = `
+            const card = document.createElement('div');
+            card.className = `bg-white rounded-2xl p-4 border border-slate-200 ${retailerConfig.borderHover} shadow-sm hover:shadow-md transition-all flex flex-col justify-between group`;
+            card.innerHTML = `
                 <div>
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${retailerConfig.badgeClass}">${retailer}</span>
@@ -658,46 +664,46 @@
                             <span>${isSelected ? 'Selected ✓' : 'Compare (+)'}</span>
                         </button>
                         <a href="${url}" target="_blank" rel="noopener noreferrer" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow transition flex items-center space-x-1">
-                            <span>Store</span>
-                        </a>
+                        <span>Store</span>
+                    </a>
                     </div>
-                </div>
-            `;
-        return card;
-    }
+            </div>
+        `;
+            return card;
+        }
 
-    function setupIntersectionObserver() {
-        if (observer) observer.disconnect();
+      function setupIntersectionObserver() {
+           if (observer) observer.disconnect();
 
-        const trigger = document.getElementById('infiniteScrollTrigger');
-        observer = new IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting && !isLoading) {
+              const trigger = document.getElementById('infiniteScrollTrigger');
+           observer = new IntersectionObserver((entries) => {
+                 if (entries[0].isIntersecting && !isLoading) {
                 isLoading = true;
                 document.getElementById('scrollSpinner').classList.remove('hidden');
                 setTimeout(() => {
-                    currentPage++;
+                        currentPage++;
                     renderNextPage();
                 }, 300);
-            }
+                }
         }, { rootMargin: '200px' });
 
         observer.observe(trigger);
-    }
+        }
 
-    function toggleCompare(globalIndex) {
-        const product = allFilteredProducts[globalIndex];
+      function toggleCompare(globalIndex) {
+            const product = allFilteredProducts[globalIndex];
         if (!product) return;
 
         const pId = getProductId(product);
-        const existingIndex = selectedForCompare.findIndex(p => getProductId(p) === pId);
+         const existingIndex = selectedForCompare.findIndex(p => getProductId(p) === pId);
 
-        if (existingIndex > -1) {
+          if (existingIndex > -1) {
             selectedForCompare.splice(existingIndex, 1);
         } else {
-            if (selectedForCompare.length >= 2) {
+                if (selectedForCompare.length >= 2) {
                 selectedForCompare.pop();
             }
-            selectedForCompare.push(product);
+                selectedForCompare.push(product);
         }
 
         updateCompareUI();
@@ -706,61 +712,61 @@
         if (selectedForCompare.length === 2) {
             openCompareModal();
         }
-    }
+        }
 
-    function updateCompareUI() {
+       function updateCompareUI() {
         const btn = document.getElementById('compareFloatingBtn');
-        const badge = document.getElementById('compareCountBadge');
+           const badge = document.getElementById('compareCountBadge');
         badge.textContent = selectedForCompare.length;
 
-        if (selectedForCompare.length > 0) {
+         if (selectedForCompare.length > 0) {
             btn.classList.remove('hidden');
             btn.classList.add('flex');
-        } else {
+            } else {
             btn.classList.add('hidden');
             btn.classList.remove('flex');
+            }
         }
-    }
 
-    function refreshCardSelectionStates() {
+               function refreshCardSelectionStates() {
         allFilteredProducts.forEach((product, idx) => {
-            const btn = document.getElementById(`compare_btn_${idx}`);
-            if (btn) {
+                   const btn = document.getElementById(`compare_btn_${idx}`);
+                if (btn) {
                 const pId = getProductId(product);
-                const isSelected = selectedForCompare.some(p => getProductId(p) === pId);
-                if (isSelected) {
+                 const isSelected = selectedForCompare.some(p => getProductId(p) === pId);
+                  if (isSelected) {
                     btn.className = 'py-2 px-3 rounded-lg text-xs font-semibold bg-emerald-600 text-white transition flex items-center justify-center shadow-sm';
                     btn.querySelector('span').textContent = 'Selected ✓';
                 } else {
                     btn.className = 'py-2 px-3 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center justify-center shadow-sm';
-                    btn.querySelector('span').textContent = 'Compare (+)';
+                        btn.querySelector('span').textContent = 'Compare (+)';
                 }
             }
-        });
-    }
+            });
+        }
 
-    function openCompareModal() {
+        function openCompareModal() {
         if (selectedForCompare.length === 0) return;
 
-        const container = document.getElementById('compareModalContent');
+            const container = document.getElementById('compareModalContent');
         container.innerHTML = '';
 
-        let p1 = selectedForCompare[0];
+            let p1 = selectedForCompare[0];
         let p2 = selectedForCompare[1] || null;
 
-        let p1Price = getProductPrice(p1);
+            let p1Price = getProductPrice(p1);
         let p2Price = p2 ? getProductPrice(p2) : null;
 
-        let p1Ram = getProductRamValue(p1);
+            let p1Ram = getProductRamValue(p1);
         let p2Ram = p2 ? getProductRamValue(p2) : null;
 
         let p1Wins = false;
         let p2Wins = false;
 
-        if (p2) {
+             if (p2) {
             if (p1Ram > p2Ram) p1Wins = true;
             else if (p2Ram > p1Ram) p2Wins = true;
-            else {
+                else {
                 if (p1Price < p2Price) p1Wins = true;
                 else if (p2Price < p1Price) p2Wins = true;
             }
@@ -768,33 +774,33 @@
 
         container.appendChild(createCompareColumn(p1, p1Wins, p2 ? p2Wins : false));
         if (p2) {
-            container.appendChild(createCompareColumn(p2, p2Wins, p1Wins));
+                container.appendChild(createCompareColumn(p2, p2Wins, p1Wins));
         }
 
         document.getElementById('compareModal').classList.remove('hidden');
-    }
+        }
 
-    function createCompareColumn(product, isWinner, isLoser) {
+       function createCompareColumn(product, isWinner, isLoser) {
         const title = product.Name || product.name || 'Laptop';
         const rawPrice = getProductPrice(product);
         const price = rawPrice.toLocaleString();
         const brand = getProductBrand(product) || 'Brand';
         const ram = getProductRamText(product);
-        const retailer = product.Retailer || product.retailer || 'Store';
+            const retailer = product.Retailer || product.retailer || 'Store';
         const url = product.Url || product.url || '#';
         const isSharafDG = retailer.toString().trim().toLowerCase().includes('sharaf');
-        const sharafDgDummyUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv9xvEsNe-LtVTOl6Yvcf_yNshKUEDaZ9kYgAoK5jtVw&s';
+            const sharafDgDummyUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv9xvEsNe-LtVTOl6Yvcf_yNshKUEDaZ9kYgAoK5jtVw&s';
         const imageUrl = isSharafDG ? sharafDgDummyUrl : (product.ImageUrl || product.imageUrl || 'https://via.placeholder.com/300');
 
-        const col = document.createElement('div');
+           const col = document.createElement('div');
         col.className = `flex-1 w-1/2 bg-white rounded-xl p-2 sm:p-4 border ${isWinner ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/10' : 'border-slate-200'} shadow-sm flex flex-col justify-between relative`;
 
         let badgeHtml = '';
-        if (isWinner) {
-            badgeHtml = `<div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-emerald-600 text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full shadow whitespace-nowrap">Best Value 🏆</div>`;
-        }
+            if (isWinner) {
+                badgeHtml = `<div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-emerald-600 text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full shadow whitespace-nowrap">Best Value 🏆</div>`;
+            }
 
-        col.innerHTML = `
+            col.innerHTML = `
                 ${badgeHtml}
                 <div>
                     <div class="flex items-center justify-between mb-1.5 sm:mb-2">
@@ -817,32 +823,32 @@
                     </div>
                 </div>
                 <div class="mt-3 sm:mt-4 pt-2 sm:pt-3 border-t border-slate-100">
-                    <a href="${url}" target="_blank" rel="noopener noreferrer" class="block w-full py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] sm:text-xs font-semibold text-center shadow transition">
-                        View Store
+                <a href="${url}" target="_blank" rel="noopener noreferrer" class="block w-full py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] sm:text-xs font-semibold text-center shadow transition">
+                    View Store
                     </a>
-                </div>
-            `;
+            </div>
+        `;
         return col;
-    }
+        }
 
-    function closeCompareModal() {
+      function closeCompareModal() {
         document.getElementById('compareModal').classList.add('hidden');
     }
 
     function clearCacheAndReload() {
         sessionStorage.clear();
         handleSearch();
-    }
+        }
 
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', () => {
+          // Initialize on page load
+       document.addEventListener('DOMContentLoaded', () => {
         if (rawInitialData && rawInitialData.length > 0) {
             updateBrandDropdown(rawInitialData);
             allFilteredProducts = filterAndSortProducts(rawInitialData, currentMaxPrice);
             updateSummaryBar(currentMaxPrice, false);
-            renderNextPage();
-        } else {
-            handleSearch();
-        }
-    });
+                renderNextPage();
+            } else {
+                handleSearch();
+            }
+        });
 </script>
