@@ -1,5 +1,6 @@
 C:\Users\m_243\source\repos\FindMyLaptop\FindMyLaptop\bin\Debug\net10.0\appsettings.Development.json
 C:\Users\m_243\source\repos\FindMyLaptop\FindMyLaptop\bin\Debug\net10.0\appsettings.json
+C:\Users\m_243\source\repos\FindMyLaptop\FindMyLaptop\bin\Debug\net10.0\Data\alershad.json
 C:\Users\m_243\source\repos\FindMyLaptop\FindMyLaptop\bin\Debug\net10.0\FindMyLaptop.staticwebassets.runtime.json
 C:\Users\m_243\source\repos\FindMyLaptop\FindMyLaptop\bin\Debug\net10.0\FindMyLaptop.staticwebassets.endpoints.json
 C:\Users\m_243\source\repos\FindMyLaptop\FindMyLaptop\bin\Debug\net10.0\FindMyLaptop.exe

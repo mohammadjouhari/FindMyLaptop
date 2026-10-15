@@ -24,6 +24,7 @@
                     sharaf: '#e11d48',
                     jumbo: '#0284c7',
                     emax: '#d97706',
+                    alershad: '#7c3aed',
                 },
                 fontFamily: {
                     sans: ['Inter', 'sans-serif'],
@@ -57,6 +58,7 @@
         0% {
             background-position: 200% 0;
         }
+
         100% {
             background-position: -200% 0;
         }
@@ -109,7 +111,7 @@
             Find the Best Laptop Within Your Budget
         </h2>
         <p class="mt-2 text-xs sm:text-sm text-slate-500 max-w-lg mx-auto">
-            Compare real-time options across <span class="text-rose-600 font-semibold">SharafDG</span>, <span class="text-sky-600 font-semibold">Jumbo</span>, and <span class="text-amber-600 font-semibold">Emax</span> instantly.
+            Compare real-time options across <span class="text-rose-600 font-semibold">SharafDG</span>, <span class="text-sky-600 font-semibold">Jumbo</span>, <span class="text-amber-600 font-semibold">Emax</span>, and <span class="text-purple-600 font-semibold">AlErshad</span> instantly.
         </p>
 
         <!-- Search & Brand Filter Form -->
@@ -233,8 +235,8 @@
             </button>
         </div>
 
-        <!-- Forced Side-by-Side Flex Layout even on Mobile Screens -->
-        <div id="compareModalContent" class="p-3 sm:p-6 max-h-[80vh] overflow-y-auto flex flex-row gap-2 sm:gap-4">
+        <!-- 2 Products Side-by-Side Flex Layout optimized for Mobile & Desktop -->
+        <div id="compareModalContent" class="p-2 sm:p-6 max-h-[80vh] overflow-y-auto flex flex-row gap-2 sm:gap-4 items-stretch">
             <!-- Comparison Side-by-Side Cards Rendered Here -->
         </div>
 
@@ -286,6 +288,12 @@
             badgeClass: 'bg-amber-600 text-white',
             borderHover: 'hover:border-amber-300',
             btnColor: 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+        },
+        'AlErshad': {
+            name: 'AlErshad',
+            badgeClass: 'bg-purple-600 text-white',
+            borderHover: 'hover:border-purple-300',
+            btnColor: 'bg-purple-50 text-purple-700 hover:bg-purple-100'
         }
     };
 
@@ -351,7 +359,6 @@
             retailerBuckets[retailer].push(p);
         });
 
-        // For each retailer bucket, sort highest price first
         for (const key in retailerBuckets) {
             retailerBuckets[key].sort((a, b) => getProductPrice(b) - getProductPrice(a));
         }
@@ -408,7 +415,6 @@
         if (sortMode === 'price_low_high') {
             return filtered.sort((a, b) => getProductPrice(a) - getProductPrice(b));
         } else {
-            // Default interleaved sorting with highest price first per retailer pool (up to 200 items each)
             return sortProductsWithInterleavedRetailers(filtered);
         }
     }
@@ -508,15 +514,15 @@
             const skel = document.createElement('div');
             skel.className = 'bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-3';
             skel.innerHTML = `
-                <div class="h-4 skeleton rounded w-1/3"></div>
-                <div class="h-44 sm:h-36 skeleton rounded-lg"></div>
-                <div class="h-4 skeleton rounded w-3/4"></div>
-                <div class="h-3 skeleton rounded w-1/2"></div>
-                <div class="pt-2 flex justify-between items-center">
-                    <div class="h-5 skeleton rounded w-1/3"></div>
-                    <div class="h-8 skeleton rounded-lg w-1/4"></div>
-                </div>
-            `;
+                    <div class="h-4 skeleton rounded w-1/3"></div>
+                    <div class="h-44 sm:h-36 skeleton rounded-lg"></div>
+                    <div class="h-4 skeleton rounded w-3/4"></div>
+                    <div class="h-3 skeleton rounded w-1/2"></div>
+                    <div class="pt-2 flex justify-between items-center">
+                        <div class="h-5 skeleton rounded w-1/3"></div>
+                        <div class="h-8 skeleton rounded-lg w-1/4"></div>
+                    </div>
+                `;
             grid.appendChild(skel);
         }
     }
@@ -551,14 +557,14 @@
 
         if (!allFilteredProducts || allFilteredProducts.length === 0) {
             grid.innerHTML = `
-                <div class="col-span-full py-12 text-center">
-                    <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <div class="col-span-full py-12 text-center">
+                        <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <h3 class="text-base font-bold text-slate-800">No Laptops Found</h3>
+                        <p class="text-xs text-slate-500 mt-1">Try increasing your budget limit or changing filters above.</p>
                     </div>
-                    <h3 class="text-base font-bold text-slate-800">No Laptops Found</h3>
-                    <p class="text-xs text-slate-500 mt-1">Try increasing your budget limit or changing filters above.</p>
-                </div>
-            `;
+                `;
             spinner.classList.add('hidden');
             message.textContent = '';
             return;
@@ -616,34 +622,34 @@
         const card = document.createElement('div');
         card.className = `bg-white rounded-2xl p-4 border border-slate-200 ${retailerConfig.borderHover} shadow-sm hover:shadow-md transition-all flex flex-col justify-between group`;
         card.innerHTML = `
-            <div>
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${retailerConfig.badgeClass}">${retailer}</span>
-                    <span class="text-xs font-semibold text-slate-400">${brand}</span>
-                </div>
-                <div class="h-40 sm:h-36 bg-slate-50 rounded-xl p-3 mb-3 flex items-center justify-center overflow-hidden group-hover:bg-blue-50/30 transition">
-                    <img src="${imageUrl}" alt="${title}" class="max-h-full max-w-full object-contain group-hover:scale-105 transition duration-300" referrerpolicy="no-referrer" />
-                </div>
-                <h3 class="font-bold text-slate-800 text-xs sm:text-sm line-clamp-2" title="${title}">${title}</h3>
-                <div class="mt-2 flex items-center space-x-2">
-                    <span class="text-[10px] font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded">RAM: ${ram}</span>
-                </div>
-            </div>
-            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
                 <div>
-                    <span class="text-[10px] text-slate-400 block font-medium">Best Price</span>
-                    <span class="text-sm sm:text-base font-extrabold text-slate-900">AED ${price}</span>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${retailerConfig.badgeClass}">${retailer}</span>
+                        <span class="text-xs font-semibold text-slate-400">${brand}</span>
+                    </div>
+                    <div class="h-40 sm:h-36 bg-slate-50 rounded-xl p-3 mb-3 flex items-center justify-center overflow-hidden group-hover:bg-blue-50/30 transition">
+                        <img src="${imageUrl}" alt="${title}" class="max-h-full max-w-full object-contain group-hover:scale-105 transition duration-300" referrerpolicy="no-referrer" />
+                    </div>
+                    <h3 class="font-bold text-slate-800 text-xs sm:text-sm line-clamp-2" title="${title}">${title}</h3>
+                    <div class="mt-2 flex items-center space-x-2">
+                        <span class="text-[10px] font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded">RAM: ${ram}</span>
+                    </div>
                 </div>
-                <div class="flex space-x-1.5">
-                    <button id="compare_btn_${globalIndex}" onclick="toggleCompare(${globalIndex})" class="py-2 px-3 rounded-lg text-xs font-semibold ${isSelected ? 'bg-emerald-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'} transition flex items-center justify-center shadow-sm">
-                        <span>${isSelected ? 'Selected ✓' : 'Compare (+)'}</span>
-                    </button>
-                    <a href="${url}" target="_blank" rel="noopener noreferrer" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow transition flex items-center space-x-1">
-                        <span>Store</span>
-                    </a>
+                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] text-slate-400 block font-medium">Best Price</span>
+                        <span class="text-sm sm:text-base font-extrabold text-slate-900">AED ${price}</span>
+                    </div>
+                    <div class="flex space-x-1.5">
+                        <button id="compare_btn_${globalIndex}" onclick="toggleCompare(${globalIndex})" class="py-2 px-3 rounded-lg text-xs font-semibold ${isSelected ? 'bg-emerald-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'} transition flex items-center justify-center shadow-sm">
+                            <span>${isSelected ? 'Selected ✓' : 'Compare (+)'}</span>
+                        </button>
+                        <a href="${url}" target="_blank" rel="noopener noreferrer" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow transition flex items-center space-x-1">
+                            <span>Store</span>
+                        </a>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
         return card;
     }
 
@@ -676,8 +682,8 @@
             selectedForCompare.splice(existingIndex, 1);
         } else {
             if (selectedForCompare.length >= 2) {
-                alert("You can compare a maximum of 2 laptops at a time.");
-                return;
+                // If already 2 selected, replace the second one or notify
+                selectedForCompare.pop();
             }
             selectedForCompare.push(product);
         }
@@ -685,125 +691,127 @@
         updateCompareUI();
         refreshCardSelectionStates();
 
+        // Automatically open modal once 2 items are selected
         if (selectedForCompare.length === 2) {
             openCompareModal();
         }
     }
 
     function updateCompareUI() {
-        const count = selectedForCompare.length;
-        document.getElementById('compareCountBadge').textContent = count;
-        const floatingBtn = document.getElementById('compareFloatingBtn');
-        if (count > 0) {
-            floatingBtn.classList.remove('hidden');
-            floatingBtn.classList.add('flex');
+        const btn = document.getElementById('compareFloatingBtn');
+        const badge = document.getElementById('compareCountBadge');
+        badge.textContent = selectedForCompare.length;
+
+        if (selectedForCompare.length > 0) {
+            btn.classList.remove('hidden');
+            btn.classList.add('flex');
         } else {
-            floatingBtn.classList.add('hidden');
-            floatingBtn.classList.remove('flex');
+            btn.classList.add('hidden');
+            btn.classList.remove('flex');
         }
     }
 
     function refreshCardSelectionStates() {
-        allFilteredProducts.forEach((prod, index) => {
-            const pId = getProductId(prod);
-            const isSelected = selectedForCompare.some(p => getProductId(p) === pId);
-            const btn = document.getElementById(`compare_btn_${index}`);
+        allFilteredProducts.forEach((product, idx) => {
+            const btn = document.getElementById(`compare_btn_${idx}`);
             if (btn) {
+                const pId = getProductId(product);
+                const isSelected = selectedForCompare.some(p => getProductId(p) === pId);
                 if (isSelected) {
-                    btn.className = "py-2 px-3 rounded-lg text-xs font-semibold bg-emerald-600 text-white transition flex items-center justify-center shadow-sm";
-                    btn.innerHTML = `<span>Selected ✓</span>`;
+                    btn.className = 'py-2 px-3 rounded-lg text-xs font-semibold bg-emerald-600 text-white transition flex items-center justify-center shadow-sm';
+                    btn.querySelector('span').textContent = 'Selected ✓';
                 } else {
-                    btn.className = "py-2 px-3 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center justify-center shadow-sm";
-                    btn.innerHTML = `<span>Compare (+)</span>`;
+                    btn.className = 'py-2 px-3 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center justify-center shadow-sm';
+                    btn.querySelector('span').textContent = 'Compare (+)';
                 }
             }
         });
     }
 
     function openCompareModal() {
-        if (selectedForCompare.length === 0) {
-            alert("Please select at least 1 laptop to compare.");
-            return;
-        }
+        if (selectedForCompare.length === 0) return;
 
-        const modalContent = document.getElementById('compareModalContent');
+        const container = document.getElementById('compareModalContent');
+        container.innerHTML = '';
 
-        let winnerIndex = -1;
-        if (selectedForCompare.length === 2) {
-            const p1 = selectedForCompare[0];
-            const p2 = selectedForCompare[1];
-            const ram1 = getProductRamValue(p1);
-            const ram2 = getProductRamValue(p2);
-            const price1 = getProductPrice(p1);
-            const price2 = getProductPrice(p2);
+        let p1 = selectedForCompare[0];
+        let p2 = selectedForCompare[1] || null;
 
-            if (ram1 > ram2) {
-                winnerIndex = 0;
-            } else if (ram2 > ram1) {
-                winnerIndex = 1;
-            } else {
-                if (price1 < price2) {
-                    winnerIndex = 0;
-                } else if (price2 < price1) {
-                    winnerIndex = 1;
-                }
+        let p1Price = getProductPrice(p1);
+        let p2Price = p2 ? getProductPrice(p2) : null;
+
+        let p1Ram = getProductRamValue(p1);
+        let p2Ram = p2 ? getProductRamValue(p2) : null;
+
+        let p1Wins = false;
+        let p2Wins = false;
+
+        if (p2) {
+            if (p1Ram > p2Ram) p1Wins = true;
+            else if (p2Ram > p1Ram) p2Wins = true;
+            else {
+                if (p1Price < p2Price) p1Wins = true;
+                else if (p2Price < p1Price) p2Wins = true;
             }
         }
 
-        let colsHtml = '';
-        selectedForCompare.forEach((prod, idx) => {
-            const title = prod.Name || prod.name || 'Laptop';
-            const brand = getProductBrand(prod) || 'Brand';
-            const rawPrice = getProductPrice(prod);
-            const priceFormatted = rawPrice.toLocaleString();
-            const ram = getProductRamText(prod);
-            const retailer = prod.Retailer || prod.retailer || 'Store';
-            const url = prod.Url || prod.url || '#';
-            const isSharafDG = retailer.toString().trim().toLowerCase().includes('sharaf');
-            const sharafDgDummyUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv9xvEsNe-LtVTOl6Yvcf_yNshKUEDaZ9kYgAoK5jtVw&s';
-            const imageUrl = isSharafDG ? sharafDgDummyUrl : (prod.ImageUrl || prod.imageUrl || 'https://via.placeholder.com/300');
+        container.appendChild(createCompareColumn(p1, p1Wins, p2 ? p2Wins : false));
+        if (p2) {
+            container.appendChild(createCompareColumn(p2, p2Wins, p1Wins));
+        }
 
-            const isWinner = (selectedForCompare.length === 2 && idx === winnerIndex);
+        document.getElementById('compareModal').classList.remove('hidden');
+    }
 
-            colsHtml += `
-                <div class="flex-1 min-w-0 bg-white border ${isWinner ? 'border-emerald-500 ring-2 ring-emerald-500/30 shadow-md' : 'border-slate-200'} rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between relative overflow-hidden">
-                    ${isWinner ? `
-                        <div class="absolute top-0 right-0 bg-emerald-500 text-white text-[9px] sm:text-[10px] font-bold px-2.5 py-0.5 rounded-bl-xl tracking-wider uppercase shadow">
-                            ★ Winner
-                        </div>
-                    ` : ''}
-                    <div>
-                        <div class="h-20 sm:h-32 bg-slate-50 rounded-xl p-1.5 sm:p-2 mb-2 sm:mb-3 flex items-center justify-center">
-                            <img src="${imageUrl}" alt="${title}" class="max-h-full max-w-full object-contain" referrerpolicy="no-referrer" />
-                        </div>
-                        <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-100 text-blue-800">${retailer}</span>
-                        <h4 class="font-bold text-slate-800 text-[11px] sm:text-sm mt-1.5 sm:mt-2 line-clamp-2">${title}</h4>
+    function createCompareColumn(product, isWinner, isLoser) {
+        const title = product.Name || product.name || 'Laptop';
+        const rawPrice = getProductPrice(product);
+        const price = rawPrice.toLocaleString();
+        const brand = getProductBrand(product) || 'Brand';
+        const ram = getProductRamText(product);
+        const retailer = product.Retailer || product.retailer || 'Store';
+        const url = product.Url || product.url || '#';
+        const isSharafDG = retailer.toString().trim().toLowerCase().includes('sharaf');
+        const sharafDgDummyUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv9xvEsNe-LtVTOl6Yvcf_yNshKUEDaZ9kYgAoK5jtVw&s';
+        const imageUrl = isSharafDG ? sharafDgDummyUrl : (product.ImageUrl || product.imageUrl || 'https://via.placeholder.com/300');
+
+        const col = document.createElement('div');
+        col.className = `flex-1 w-1/2 bg-white rounded-xl p-2 sm:p-4 border ${isWinner ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/10' : 'border-slate-200'} shadow-sm flex flex-col justify-between relative`;
+
+        let badgeHtml = '';
+        if (isWinner) {
+            badgeHtml = `<div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-emerald-600 text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full shadow whitespace-nowrap">Best Value 🏆</div>`;
+        }
+
+        col.innerHTML = `
+                ${badgeHtml}
+                <div>
+                    <div class="flex items-center justify-between mb-1.5 sm:mb-2">
+                        <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">${retailer}</span>
+                        <span class="text-[10px] sm:text-xs font-semibold text-slate-400">${brand}</span>
                     </div>
-                    <div class="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-slate-100 space-y-1.5 sm:space-y-2 text-[11px] sm:text-xs">
-                        <div class="flex justify-between items-center">
-                            <span class="text-slate-500 font-medium">Brand:</span>
-                            <span class="font-semibold text-slate-800">${brand}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-slate-500 font-medium">RAM:</span>
-                            <span class="font-semibold text-blue-600 bg-blue-50 px-1.5 sm:px-2 py-0.5 rounded">${ram}</span>
-                        </div>
-                        <div class="flex justify-between items-center pt-1.5 sm:pt-2 border-t border-slate-100">
-                            <span class="text-slate-500 font-medium">Price:</span>
-                            <span class="text-xs sm:text-base font-extrabold text-slate-900">AED ${priceFormatted}</span>
-                        </div>
+                    <div class="h-24 sm:h-32 bg-slate-50 rounded-xl p-2 mb-2 sm:mb-3 flex items-center justify-center overflow-hidden">
+                        <img src="${imageUrl}" alt="${title}" class="max-h-full max-w-full object-contain" referrerpolicy="no-referrer" />
                     </div>
-                    <div class="mt-3 sm:mt-4">
-                        <a href="${url}" target="_blank" rel="noopener noreferrer" class="w-full block text-center py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[11px] sm:text-xs font-semibold shadow transition">
-                            View Store
-                        </a>
+                    <h4 class="font-bold text-slate-800 text-[11px] sm:text-sm line-clamp-2 leading-tight">${title}</h4>
+                    <div class="mt-2 sm:mt-3 space-y-1 border-t border-slate-100 pt-2">
+                        <div class="flex justify-between text-[11px] sm:text-xs">
+                            <span class="text-slate-500">Price:</span>
+                            <span class="font-extrabold text-slate-900">AED ${price}</span>
+                        </div>
+                        <div class="flex justify-between text-[11px] sm:text-xs">
+                            <span class="text-slate-500">RAM:</span>
+                            <span class="font-semibold text-slate-700">${ram}</span>
+                        </div>
                     </div>
                 </div>
+                <div class="mt-3 sm:mt-4 pt-2 sm:pt-3 border-t border-slate-100">
+                    <a href="${url}" target="_blank" rel="noopener noreferrer" class="block w-full py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] sm:text-xs font-semibold text-center shadow transition">
+                        View Store
+                    </a>
+                </div>
             `;
-        });
-
-        modalContent.innerHTML = colsHtml;
-        document.getElementById('compareModal').classList.remove('hidden');
+        return col;
     }
 
     function closeCompareModal() {
@@ -811,13 +819,11 @@
     }
 
     function clearCacheAndReload() {
-        const priceInput = document.getElementById('maxPriceInput');
-        const maxPrice = parseFloat(priceInput.value) || 4000;
-        sessionStorage.removeItem(`findmylaptop_results_${maxPrice}`);
+        sessionStorage.clear();
         handleSearch();
     }
 
-    // Initial render call on page load
+    // Initialize on page load
     document.addEventListener('DOMContentLoaded', () => {
         if (rawInitialData && rawInitialData.length > 0) {
             updateBrandDropdown(rawInitialData);

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace FindMyLaptop.Pages
@@ -50,10 +51,27 @@ namespace FindMyLaptop.Pages
             var sharafdg = FilterAndSort(await sharafdgTask, maxPrice);
             var jumbo = FilterAndSort(await jumboTask, maxPrice);
             var emax = FilterAndSort(await emaxTask, maxPrice);
-     
+
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "data", "alershad.json");
+            List<ProductDto> alershadRaw = new List<ProductDto>();
+            var jsonContent = await System.IO.File.ReadAllTextAsync(filePath);
+                alershadRaw = JsonSerializer.Deserialize<List<ProductDto>>(jsonContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                }) ?? new List<ProductDto>();
+
+            // 2. Filter and sort by price
+            var alershad = FilterAndSort(alershadRaw, maxPrice);
+
+
+
+
+
+
+
 
             var interleavedProducts = new List<ProductDto>();
-            int maxCount = Math.Max(sharafdg.Count, Math.Max(jumbo.Count, emax.Count));
+            int maxCount = Math.Max(Math.Max(sharafdg.Count, jumbo.Count), Math.Max(emax.Count, alershad.Count));
 
             // 2. Take 1 item from each store per loop iteration
             for (int i = 0; i < maxCount; i++)
@@ -61,6 +79,7 @@ namespace FindMyLaptop.Pages
                 if (i < sharafdg.Count) interleavedProducts.Add(sharafdg[i]);
                 if (i < jumbo.Count) interleavedProducts.Add(jumbo[i]);
                 if (i < emax.Count) interleavedProducts.Add(emax[i]);
+                if (i < alershad.Count) interleavedProducts.Add(alershad[i]);
             }
 
             return interleavedProducts;
