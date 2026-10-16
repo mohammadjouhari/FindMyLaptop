@@ -118,7 +118,7 @@ namespace FindMyLaptop.Pages
                 if (i < carrefouruaeProducts.Count) interleavedProducts.Add(carrefouruaeProducts[i]);
             }
 
-            return interleavedProducts;
+            return interleavedProducts.Where(p => p.Price > 1000).ToList();
         }
 
         private List<ProductDto> FilterAndSort(List<ProductDto>? rawList, decimal maxPrice)
