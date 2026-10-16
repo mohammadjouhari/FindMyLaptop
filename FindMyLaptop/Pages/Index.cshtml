@@ -102,7 +102,10 @@
         overflow: hidden;
     }
 </style>
+<div class="py-6 text-center text-xs text-slate-500 border-t border-slate-200">
+    <p>© 2026 FindMyLaptop. Built & Developed by <a href="https://mohammadjouhari.runasp.net/" class="font-semibold text-slate-700 hover:underline">Mohammad Jouhari</a>.</p>
 
+</div>
 <!-- Sticky Glass Header -->
 <header class="sticky top-0 z-40 glass-header border-b border-slate-200/80 shadow-sm transition-all duration-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -300,6 +303,7 @@
         </div>
     </div>
 </div>
+
 <script>
     let rawInitialData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Products));
     let allFilteredProducts = [];
