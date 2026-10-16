@@ -3,8 +3,6 @@
 @{
     ViewData["Title"] = "FindMyLaptop - Discover Best Deals Across Retailers";
 }
-
-<!-- Lock mobile viewport scale & disable pinch zoom -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no" />
 
 <script src="https://cdn.tailwindcss.com"></script>
@@ -114,8 +112,8 @@
             Compare real-time options across <span class="text-rose-600 font-semibold">SharafDG</span>, <span class="text-sky-600 font-semibold">Jumbo</span>, <span class="text-amber-600 font-semibold">Emax</span>, <span class="text-purple-600 font-semibold">AlErshad</span>, and <span class="text-emerald-600 font-semibold">Carrefour</span> instantly.
         </p>
 
-        <!-- Search & Brand Filter Form -->
-        <form id="searchForm" onsubmit="handleSearch(event)" class="mt-6 max-w-lg mx-auto space-y-3">
+        <!-- Search & Filter Form -->
+        <form id="searchForm" onsubmit="handleSearch(event)" class="mt-6 max-w-xl mx-auto space-y-3">
             <div class="relative flex items-center">
                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 font-semibold text-sm">
                     AED
@@ -123,7 +121,7 @@
                 <input type="number"
                        id="maxPriceInput"
                        name="maxPrice"
-                       value="@(Model.MaxPrice ?? 4000)"
+                       value="4000"
                        placeholder="Enter Max Price (e.g. 3500)"
                        min="500"
                        max="25000"
@@ -139,11 +137,30 @@
                 </button>
             </div>
 
-            <!-- Controls Bar: Brand, Sorting, Clear Compare, Reset -->
-            <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-1">
+            <!-- Controls Bar: Brand, RAM, Retailer, Sorting, Clear Compare, Reset -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
                 <div>
                     <select id="brandSelect" onchange="handleSearch()" class="w-full py-2.5 px-3 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-medium text-slate-700 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition">
                         <option value="">All Brands</option>
+                    </select>
+                </div>
+                <div>
+                    <select id="ramSelect" onchange="handleSearch()" class="w-full py-2.5 px-3 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-medium text-slate-700 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition">
+                        <option value="">All RAM Sizes</option>
+                        <option value="8">8 GB</option>
+                        <option value="16">16 GB</option>
+                        <option value="32">32 GB</option>
+                        <option value="64">64 GB</option>
+                    </select>
+                </div>
+                <div>
+                    <select id="retailerSelect" onchange="handleSearch()" class="w-full py-2.5 px-3 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-medium text-slate-700 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition">
+                        <option value="">All Retailers</option>
+                        <option value="SharafDG">SharafDG</option>
+                        <option value="Jumbo">Jumbo</option>
+                        <option value="Emax">Emax</option>
+                        <option value="AlErshad">AlErshad</option>
+                        <option value="Carrefour">Carrefour</option>
                     </select>
                 </div>
                 <div>
@@ -250,7 +267,6 @@
         </div>
     </div>
 </div>
-
 <script>
     let rawInitialData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Products));
     let allFilteredProducts = [];
@@ -296,7 +312,7 @@
             btnColor: 'bg-purple-50 text-purple-700 hover:bg-purple-100'
         },
         'Carrefour': {
-                name: 'Carrefour',
+            name: 'Carrefour',
             badgeClass: 'bg-emerald-600 text-white',
             borderHover: 'hover:border-emerald-300',
             btnColor: 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
@@ -307,116 +323,143 @@
         if (!product) return 0;
         const val = product.price !== undefined ? product.price : product.Price;
         return parseFloat(val) || 0;
-        }
+    }
 
-        function getProductBrand(product) {
+    function getProductBrand(product) {
         if (!product) return '';
         return (product.brand || product.Brand || '').toString().trim();
-        }
+    }
 
-       function getProductRetailer(product) {
+    function getProductRetailer(product) {
         if (!product) return '';
         return (product.Retailer || product.retailer || '').toString().trim();
-        }
+    }
 
-      function getProductRamValue(product) {
+    function getProductRamValue(product) {
         if (!product) return 0;
         const name = (product.Name || product.name || '').toString();
-            const ramMatch = name.match(/(\d+)\s*(?:GB|gb)\b(?:\s*RAM)?/i);
+        const ramMatch = name.match(/(\d+)\s*(?:GB|gb)\b(?:\s*RAM)?/i);
         if (ramMatch && ramMatch[1]) {
             return parseInt(ramMatch[1], 10) || 0;
         }
         return 0;
-        }
+    }
 
-       function getProductRamText(product) {
+    function getProductRamText(product) {
         const val = getProductRamValue(product);
         return val > 0 ? `${val} GB` : 'Standard';
-        }
+    }
 
-       function getProductId(product) {
+    function getProductId(product) {
         if (!product) return '';
-            return product.Url || product.url || product.Name || product.name || JSON.stringify(product);
-        }
+        return product.Url || product.url || product.Name || product.name || JSON.stringify(product);
+    }
 
-       function updateBrandDropdown(products) {
+    function updateDropdowns(products) {
         const brandSelect = document.getElementById('brandSelect');
-         const currentSelectedBrand = brandSelect.value;
+        const ramSelect = document.getElementById('ramSelect');
+        const retailerSelect = document.getElementById('retailerSelect');
 
-            const brands = [...new Set(products.map(p => getProductBrand(p)).filter(b => b.length > 0))].sort();
+        const currentBrand = brandSelect.value;
+        const currentRam = ramSelect.value;
+        const currentRetailer = retailerSelect.value;
 
-          brandSelect.innerHTML = '<option value="">All Brands</option>';
-           brands.forEach(brand => {
+        // Populate Brands
+        const brands = [...new Set(products.map(p => getProductBrand(p)).filter(b => b.length > 0))].sort();
+        brandSelect.innerHTML = '<option value="">All Brands</option>';
+        brands.forEach(brand => {
             const opt = document.createElement('option');
             opt.value = brand;
             opt.textContent = brand;
-                if (brand === currentSelectedBrand) {
-                opt.selected = true;
-            }
-                brandSelect.appendChild(opt);
+            if (brand === currentBrand) opt.selected = true;
+            brandSelect.appendChild(opt);
         });
-        }
 
-         function sortProductsWithInterleavedRetailers(products) {
+        // Populate RAM sizes
+        const ramSizes = [...new Set(products.map(p => getProductRamValue(p)).filter(r => r > 0))].sort((a, b) => a - b);
+        ramSelect.innerHTML = '<option value="">All RAM Sizes</option>';
+        ramSizes.forEach(ram => {
+            const opt = document.createElement('option');
+            opt.value = ram;
+            opt.textContent = `${ram} GB`;
+            if (ram.toString() === currentRam) opt.selected = true;
+            ramSelect.appendChild(opt);
+        });
+
+        // Populate Retailers
+        const retailers = [...new Set(products.map(p => getProductRetailer(p)).filter(r => r.length > 0))].sort();
+        retailerSelect.innerHTML = '<option value="">All Retailers</option>';
+        retailers.forEach(retailer => {
+            const opt = document.createElement('option');
+            opt.value = retailer;
+            opt.textContent = retailer;
+            if (retailer.toLowerCase() === currentRetailer.toLowerCase()) opt.selected = true;
+            retailerSelect.appendChild(opt);
+        });
+    }
+
+    function sortProductsWithInterleavedRetailers(products) {
         if (!products || !Array.isArray(products)) return [];
 
-          const retailerBuckets = {};
+        const retailerBuckets = {};
 
         products.forEach(p => {
-                const retailer = getProductRetailer(p) || 'Other';
+            const retailer = getProductRetailer(p) || 'Other';
             if (!retailerBuckets[retailer]) {
                 retailerBuckets[retailer] = [];
             }
-                retailerBuckets[retailer].push(p);
+            retailerBuckets[retailer].push(p);
         });
 
-            for (const key in retailerBuckets) {
+        for (const key in retailerBuckets) {
             retailerBuckets[key].sort((a, b) => getProductPrice(b) - getProductPrice(a));
-            }
+        }
 
         const pools = {};
-            const remaining = {};
+        const remaining = {};
 
         for (const key in retailerBuckets) {
             pools[key] = retailerBuckets[key].slice(0, 200);
-                remaining[key] = retailerBuckets[key].slice(200);
+            remaining[key] = retailerBuckets[key].slice(200);
         }
 
-         const interleavedList = [];
-            let itemAddedInRound = true;
-         let roundIndex = 0;
+        const interleavedList = [];
+        let itemAddedInRound = true;
+        let roundIndex = 0;
 
-          while (itemAddedInRound && roundIndex < 200) {
+        while (itemAddedInRound && roundIndex < 200) {
             itemAddedInRound = false;
             for (const key in pools) {
                 if (pools[key].length > roundIndex) {
-                        interleavedList.push(pools[key][roundIndex]);
+                    interleavedList.push(pools[key][roundIndex]);
                     itemAddedInRound = true;
                 }
             }
             roundIndex++;
-            }
+        }
 
         const allRemaining = [];
-            for (const key in remaining) {
+        for (const key in remaining) {
             allRemaining.push(...remaining[key]);
         }
 
         return [...interleavedList, ...allRemaining];
-        }
+    }
 
     function filterAndSortProducts(products, maxPrice) {
-           if (!products || !Array.isArray(products)) return [];
+        if (!products || !Array.isArray(products)) return [];
 
-            const selectedBrand = document.getElementById('brandSelect').value;
-          const sortMode = document.getElementById('sortSelect').value;
+        const selectedBrand = document.getElementById('brandSelect').value;
+        const selectedRam = document.getElementById('ramSelect').value;
+        const selectedRetailer = document.getElementById('retailerSelect').value;
+        const sortMode = document.getElementById('sortSelect').value;
 
-          const filtered = products.filter(p => {
-              const price = getProductPrice(p);
-              if (price <= 0 || price > maxPrice) return false;
+        const filtered = products.filter(p => {
+            const price = getProductPrice(p);
+            if (price <= 0 || price > maxPrice) return false;
 
             if (sortMode === 'price_low_high') {
-                    const retailer = getProductRetailer(p);
+                const retailer = getProductRetailer(p);
                 if (retailer.toLowerCase() === 'alershad' && price < 1000) {
                     return false;
                 }
@@ -424,74 +467,83 @@
 
             if (selectedBrand) {
                 const brand = getProductBrand(p);
-                    if (brand.toLowerCase() !== selectedBrand.toLowerCase()) return false;
+                if (brand.toLowerCase() !== selectedBrand.toLowerCase()) return false;
+            }
+
+            if (selectedRam) {
+                const ramVal = getProductRamValue(p);
+                if (ramVal.toString() !== selectedRam) return false;
+            }
+
+            if (selectedRetailer) {
+                const retailer = getProductRetailer(p);
+                if (retailer.toLowerCase() !== selectedRetailer.toLowerCase()) return false;
             }
 
             return true;
-            });
+        });
 
         if (sortMode === 'price_low_high') {
-                return filtered.sort((a, b) => getProductPrice(a) - getProductPrice(b));
+            return filtered.sort((a, b) => getProductPrice(a) - getProductPrice(b));
         } else {
             return sortProductsWithInterleavedRetailers(filtered);
         }
-        }
+    }
 
-        function handleSortChange() {
+    function handleSortChange() {
         const priceInput = document.getElementById('maxPriceInput');
-           const maxPrice = parseFloat(priceInput.value) || 4000;
+        const maxPrice = parseFloat(priceInput.value) || 4000;
         const cacheKey = `findmylaptop_results_${maxPrice}`;
-            const cachedData = sessionStorage.getItem(cacheKey);
+        const cachedData = sessionStorage.getItem(cacheKey);
 
-          if (cachedData) {
+        if (cachedData) {
             const rawParsed = JSON.parse(cachedData);
             resetGrid();
             allFilteredProducts = filterAndSortProducts(rawParsed, maxPrice);
             updateSummaryBar(maxPrice, true);
-                renderNextPage();
+            renderNextPage();
         } else {
             handleSearch();
-            }
         }
+    }
 
-        async function handleSearch(event) {
+    async function handleSearch(event) {
         if (event) event.preventDefault();
 
         const priceInput = document.getElementById('maxPriceInput');
         const maxPrice = parseFloat(priceInput.value);
 
-            if (!maxPrice || maxPrice <= 0) return;
+        if (!maxPrice || maxPrice <= 0) return;
 
         currentMaxPrice = maxPrice;
-            const cacheKey = `findmylaptop_results_${maxPrice}`;
+        const cacheKey = `findmylaptop_results_${maxPrice}`;
         const cachedData = sessionStorage.getItem(cacheKey);
 
-             resetGrid();
-              showSkeletons();
+        resetGrid();
+        showSkeletons();
 
-         if (cachedData) {
-                setTimeout(() => {
+        if (cachedData) {
+            setTimeout(() => {
                 const rawParsed = JSON.parse(cachedData);
-                updateBrandDropdown(rawParsed);
+                updateDropdowns(rawParsed);
                 allFilteredProducts = filterAndSortProducts(rawParsed, maxPrice);
-                    updateSummaryBar(maxPrice, true);
+                updateSummaryBar(maxPrice, true);
                 renderNextPage();
-             }, 250);
-
+            }, 250);
         } else {
-          updateSummaryBar(maxPrice, false);
+            updateSummaryBar(maxPrice, false);
 
-             try {
+            try {
                 const response = await fetch(`?handler=Search&maxPrice=${maxPrice}`);
-                    if (!response.ok) throw new Error("Server response failed");
+                if (!response.ok) throw new Error("Server response failed");
 
                 const rawProducts = await response.json();
-                updateBrandDropdown(rawProducts);
+                updateDropdowns(rawProducts);
                 allFilteredProducts = filterAndSortProducts(rawProducts, maxPrice);
 
                 sessionStorage.setItem(cacheKey, JSON.stringify(rawProducts));
                 renderNextPage();
-                } catch (err) {
+            } catch (err) {
                 console.error("Error fetching laptops from server:", err);
             }
         }
@@ -500,147 +552,151 @@
     function setBudget(amount) {
         document.getElementById('maxPriceInput').value = amount;
         handleSearch();
-        }
+    }
 
     function resetAllFilters() {
-            document.getElementById('maxPriceInput').value = 4000;
+        document.getElementById('maxPriceInput').value = 4000;
         document.getElementById('brandSelect').value = "";
+        document.getElementById('ramSelect').value = "";
+        document.getElementById('retailerSelect').value = "";
         document.getElementById('sortSelect').value = "retailer";
         handleSearch();
-        }
+    }
 
     function clearCompareSelection() {
-            selectedForCompare = [];
+        selectedForCompare = [];
         updateCompareUI();
         refreshCardSelectionStates();
         closeCompareModal();
-        }
+    }
 
-       function resetGrid() {
+    function resetGrid() {
         currentPage = 1;
         pageSize = getPageSize();
-            allFilteredProducts = [];
+        allFilteredProducts = [];
         document.getElementById('productGrid').innerHTML = '';
         document.getElementById('scrollMessage').textContent = '';
         if (observer) observer.disconnect();
-        }
+    }
 
-       function showSkeletons() {
-          const grid = document.getElementById('productGrid');
-          grid.innerHTML = '';
-            const skeletonCount = window.innerWidth < 640 ? 4 : 8;
-            for (let i = 0; i < skeletonCount; i++) {
-                const skel = document.createElement('div');
-                skel.className = 'bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-3';
-                skel.innerHTML = `
+    function showSkeletons() {
+        const grid = document.getElementById('productGrid');
+        grid.innerHTML = '';
+        const skeletonCount = window.innerWidth < 640 ? 4 : 8;
+        for (let i = 0; i < skeletonCount; i++) {
+            const skel = document.createElement('div');
+            skel.className = 'bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-3';
+            skel.innerHTML = `
                     <div class="h-4 skeleton rounded w-1/3"></div>
                     <div class="h-44 sm:h-36 skeleton rounded-lg"></div>
                     <div class="h-4 skeleton rounded w-3/4"></div>
                     <div class="h-3 skeleton rounded w-1/2"></div>
-                <div class="pt-2 flex justify-between items-center">
-                    <div class="h-5 skeleton rounded w-1/3"></div>
-                    <div class="h-8 skeleton rounded-lg w-1/4"></div>
+                    <div class="pt-2 flex justify-between items-center">
+                        <div class="h-5 skeleton rounded w-1/3"></div>
+                        <div class="h-8 skeleton rounded-lg w-1/4"></div>
                     </div>
-            `;
+                `;
             grid.appendChild(skel);
         }
-        }
+    }
 
-        function updateSummaryBar(price, isCached) {
+    function updateSummaryBar(price, isCached) {
         const bar = document.getElementById('filterSummaryBar');
         const summaryText = document.getElementById('summaryText');
         const cacheBadge = document.getElementById('cacheBadge');
-          const selectedBrand = document.getElementById('brandSelect').value;
+        const selectedBrand = document.getElementById('brandSelect').value;
+        const selectedRam = document.getElementById('ramSelect').value;
+        const selectedRetailer = document.getElementById('retailerSelect').value;
 
         bar.classList.remove('hidden');
-            let text = `Laptops under AED ${price.toLocaleString()}`;
-        if (selectedBrand) {
-            text += ` • Brand: ${selectedBrand}`;
-            }
+        let text = `Laptops under AED ${price.toLocaleString()}`;
+        if (selectedBrand) text += ` • Brand: ${selectedBrand}`;
+        if (selectedRam) text += ` • RAM: ${selectedRam}GB`;
+        if (selectedRetailer) text += ` • Retailer: ${selectedRetailer}`;
         summaryText.textContent = text;
 
         if (isCached) {
             cacheBadge.classList.remove('hidden');
-                cacheBadge.textContent = 'Loaded from Session Storage';
+            cacheBadge.textContent = 'Loaded from Session Storage';
         } else {
             cacheBadge.classList.add('hidden');
         }
-        }
+    }
 
-     function renderNextPage() {
-            const grid = document.getElementById('productGrid');
+    function renderNextPage() {
+        const grid = document.getElementById('productGrid');
         const spinner = document.getElementById('scrollSpinner');
         const message = document.getElementById('scrollMessage');
 
-            if (currentPage === 1) grid.innerHTML = '';
+        if (currentPage === 1) grid.innerHTML = '';
 
-            if (!allFilteredProducts || allFilteredProducts.length === 0) {
-                grid.innerHTML = `
+        if (!allFilteredProducts || allFilteredProducts.length === 0) {
+            grid.innerHTML = `
                     <div class="col-span-full py-12 text-center">
                         <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
                             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <h3 class="text-base font-bold text-slate-800">No Laptops Found</h3>
+                        <p class="text-xs text-slate-500 mt-1">Try increasing your budget limit or changing filters above.</p>
                     </div>
-                    <h3 class="text-base font-bold text-slate-800">No Laptops Found</h3>
-                    <p class="text-xs text-slate-500 mt-1">Try increasing your budget limit or changing filters above.</p>
-                </div>
                 `;
             spinner.classList.add('hidden');
             message.textContent = '';
             return;
-            }
+        }
 
-            const startIndex = (currentPage - 1) * pageSize;
-          const endIndex = startIndex + pageSize;
-          const pageItems = allFilteredProducts.slice(startIndex, endIndex);
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const pageItems = allFilteredProducts.slice(startIndex, endIndex);
 
-            if (pageItems.length === 0 && currentPage > 1) {
+        if (pageItems.length === 0 && currentPage > 1) {
             spinner.classList.add('hidden');
             message.textContent = `Showing all ${allFilteredProducts.length} matching laptops.`;
             return;
-            }
+        }
 
-            pageItems.forEach((product, idx) => {
+        pageItems.forEach((product, idx) => {
             const globalIndex = startIndex + idx;
             const card = createProductCard(product, globalIndex);
-                grid.appendChild(card);
+            grid.appendChild(card);
         });
 
-            isLoading = false;
+        isLoading = false;
         spinner.classList.add('hidden');
 
-         if (endIndex >= allFilteredProducts.length) {
+        if (endIndex >= allFilteredProducts.length) {
             message.textContent = `Showing all ${allFilteredProducts.length} matching laptops.`;
             if (observer) observer.disconnect();
-            } else {
+        } else {
             message.textContent = 'Scroll for more options...';
             setupIntersectionObserver();
         }
-        }
+    }
 
-        function createProductCard(product, globalIndex) {
+    function createProductCard(product, globalIndex) {
         const title = product.Name || product.name || 'Laptop';
         const rawPrice = getProductPrice(product);
         const price = rawPrice.toLocaleString();
         const brand = getProductBrand(product) || 'Brand';
         const ram = getProductRamText(product);
-            const retailer = product.Retailer || product.retailer || 'Store';
+        const retailer = product.Retailer || product.retailer || 'Store';
         const url = product.Url || product.url || '#';
-           const isSharafDG = retailer.toString().trim().toLowerCase().includes('sharaf');
-         const sharafDgDummyUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv9xvEsNe-LtVTOl6Yvcf_yNshKUEDaZ9kYgAoK5jtVw&s';
-            const imageUrl = isSharafDG ? sharafDgDummyUrl : (product.ImageUrl || product.imageUrl || 'https://via.placeholder.com/300');
+        const isSharafDG = retailer.toString().trim().toLowerCase().includes('sharaf');
+        const sharafDgDummyUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv9xvEsNe-LtVTOl6Yvcf_yNshKUEDaZ9kYgAoK5jtVw&s';
+        const imageUrl = isSharafDG ? sharafDgDummyUrl : (product.ImageUrl || product.imageUrl || 'https://via.placeholder.com/300');
 
-            const retailerConfig = RETAILERS[retailer] || {
+        const retailerConfig = RETAILERS[retailer] || {
             badgeClass: 'bg-slate-600 text-white',
             borderHover: 'hover:border-slate-300',
-                btnColor: 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+            btnColor: 'bg-slate-50 text-slate-700 hover:bg-slate-100'
         };
 
         const pId = getProductId(product);
-            const isSelected = selectedForCompare.some(p => getProductId(p) === pId);
+        const isSelected = selectedForCompare.some(p => getProductId(p) === pId);
 
-            const card = document.createElement('div');
-            card.className = `bg-white rounded-2xl p-4 border border-slate-200 ${retailerConfig.borderHover} shadow-sm hover:shadow-md transition-all flex flex-col justify-between group`;
-            card.innerHTML = `
+        const card = document.createElement('div');
+        card.className = `bg-white rounded-2xl p-4 border border-slate-200 ${retailerConfig.borderHover} shadow-sm hover:shadow-md transition-all flex flex-col justify-between group`;
+        card.innerHTML = `
                 <div>
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${retailerConfig.badgeClass}">${retailer}</span>
@@ -667,43 +723,43 @@
                         <span>Store</span>
                     </a>
                     </div>
-            </div>
-        `;
-            return card;
-        }
+                </div>
+            `;
+        return card;
+    }
 
-      function setupIntersectionObserver() {
-           if (observer) observer.disconnect();
+    function setupIntersectionObserver() {
+        if (observer) observer.disconnect();
 
-              const trigger = document.getElementById('infiniteScrollTrigger');
-           observer = new IntersectionObserver((entries) => {
-                 if (entries[0].isIntersecting && !isLoading) {
+        const trigger = document.getElementById('infiniteScrollTrigger');
+        observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && !isLoading) {
                 isLoading = true;
                 document.getElementById('scrollSpinner').classList.remove('hidden');
                 setTimeout(() => {
-                        currentPage++;
+                    currentPage++;
                     renderNextPage();
                 }, 300);
-                }
+            }
         }, { rootMargin: '200px' });
 
         observer.observe(trigger);
-        }
+    }
 
-      function toggleCompare(globalIndex) {
-            const product = allFilteredProducts[globalIndex];
+    function toggleCompare(globalIndex) {
+        const product = allFilteredProducts[globalIndex];
         if (!product) return;
 
         const pId = getProductId(product);
-         const existingIndex = selectedForCompare.findIndex(p => getProductId(p) === pId);
+        const existingIndex = selectedForCompare.findIndex(p => getProductId(p) === pId);
 
-          if (existingIndex > -1) {
+        if (existingIndex > -1) {
             selectedForCompare.splice(existingIndex, 1);
         } else {
-                if (selectedForCompare.length >= 2) {
+            if (selectedForCompare.length >= 2) {
                 selectedForCompare.pop();
             }
-                selectedForCompare.push(product);
+            selectedForCompare.push(product);
         }
 
         updateCompareUI();
@@ -712,61 +768,61 @@
         if (selectedForCompare.length === 2) {
             openCompareModal();
         }
-        }
+    }
 
-       function updateCompareUI() {
+    function updateCompareUI() {
         const btn = document.getElementById('compareFloatingBtn');
-           const badge = document.getElementById('compareCountBadge');
+        const badge = document.getElementById('compareCountBadge');
         badge.textContent = selectedForCompare.length;
 
-         if (selectedForCompare.length > 0) {
+        if (selectedForCompare.length > 0) {
             btn.classList.remove('hidden');
             btn.classList.add('flex');
-            } else {
+        } else {
             btn.classList.add('hidden');
             btn.classList.remove('flex');
-            }
         }
+    }
 
-               function refreshCardSelectionStates() {
+    function refreshCardSelectionStates() {
         allFilteredProducts.forEach((product, idx) => {
-                   const btn = document.getElementById(`compare_btn_${idx}`);
-                if (btn) {
+            const btn = document.getElementById(`compare_btn_${idx}`);
+            if (btn) {
                 const pId = getProductId(product);
-                 const isSelected = selectedForCompare.some(p => getProductId(p) === pId);
-                  if (isSelected) {
+                const isSelected = selectedForCompare.some(p => getProductId(p) === pId);
+                if (isSelected) {
                     btn.className = 'py-2 px-3 rounded-lg text-xs font-semibold bg-emerald-600 text-white transition flex items-center justify-center shadow-sm';
                     btn.querySelector('span').textContent = 'Selected ✓';
                 } else {
                     btn.className = 'py-2 px-3 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center justify-center shadow-sm';
-                        btn.querySelector('span').textContent = 'Compare (+)';
+                    btn.querySelector('span').textContent = 'Compare (+)';
                 }
             }
-            });
-        }
+        });
+    }
 
-        function openCompareModal() {
+    function openCompareModal() {
         if (selectedForCompare.length === 0) return;
 
-            const container = document.getElementById('compareModalContent');
+        const container = document.getElementById('compareModalContent');
         container.innerHTML = '';
 
-            let p1 = selectedForCompare[0];
+        let p1 = selectedForCompare[0];
         let p2 = selectedForCompare[1] || null;
 
-            let p1Price = getProductPrice(p1);
+        let p1Price = getProductPrice(p1);
         let p2Price = p2 ? getProductPrice(p2) : null;
 
-            let p1Ram = getProductRamValue(p1);
+        let p1Ram = getProductRamValue(p1);
         let p2Ram = p2 ? getProductRamValue(p2) : null;
 
         let p1Wins = false;
         let p2Wins = false;
 
-             if (p2) {
+        if (p2) {
             if (p1Ram > p2Ram) p1Wins = true;
             else if (p2Ram > p1Ram) p2Wins = true;
-                else {
+            else {
                 if (p1Price < p2Price) p1Wins = true;
                 else if (p2Price < p1Price) p2Wins = true;
             }
@@ -774,33 +830,33 @@
 
         container.appendChild(createCompareColumn(p1, p1Wins, p2 ? p2Wins : false));
         if (p2) {
-                container.appendChild(createCompareColumn(p2, p2Wins, p1Wins));
+            container.appendChild(createCompareColumn(p2, p2Wins, p1Wins));
         }
 
         document.getElementById('compareModal').classList.remove('hidden');
-        }
+    }
 
-       function createCompareColumn(product, isWinner, isLoser) {
+    function createCompareColumn(product, isWinner, isLoser) {
         const title = product.Name || product.name || 'Laptop';
         const rawPrice = getProductPrice(product);
         const price = rawPrice.toLocaleString();
         const brand = getProductBrand(product) || 'Brand';
         const ram = getProductRamText(product);
-            const retailer = product.Retailer || product.retailer || 'Store';
+        const retailer = product.Retailer || product.retailer || 'Store';
         const url = product.Url || product.url || '#';
         const isSharafDG = retailer.toString().trim().toLowerCase().includes('sharaf');
-            const sharafDgDummyUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv9xvEsNe-LtVTOl6Yvcf_yNshKUEDaZ9kYgAoK5jtVw&s';
+        const sharafDgDummyUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv9xvEsNe-LtVTOl6Yvcf_yNshKUEDaZ9kYgAoK5jtVw&s';
         const imageUrl = isSharafDG ? sharafDgDummyUrl : (product.ImageUrl || product.imageUrl || 'https://via.placeholder.com/300');
 
-           const col = document.createElement('div');
+        const col = document.createElement('div');
         col.className = `flex-1 w-1/2 bg-white rounded-xl p-2 sm:p-4 border ${isWinner ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/10' : 'border-slate-200'} shadow-sm flex flex-col justify-between relative`;
 
         let badgeHtml = '';
-            if (isWinner) {
-                badgeHtml = `<div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-emerald-600 text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full shadow whitespace-nowrap">Best Value 🏆</div>`;
-            }
+        if (isWinner) {
+            badgeHtml = `<div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-emerald-600 text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full shadow whitespace-nowrap">Best Value 🏆</div>`;
+        }
 
-            col.innerHTML = `
+        col.innerHTML = `
                 ${badgeHtml}
                 <div>
                     <div class="flex items-center justify-between mb-1.5 sm:mb-2">
@@ -827,28 +883,28 @@
                     View Store
                     </a>
             </div>
-        `;
+            `;
         return col;
-        }
+    }
 
-      function closeCompareModal() {
+    function closeCompareModal() {
         document.getElementById('compareModal').classList.add('hidden');
     }
 
     function clearCacheAndReload() {
         sessionStorage.clear();
         handleSearch();
-        }
+    }
 
-          // Initialize on page load
-       document.addEventListener('DOMContentLoaded', () => {
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
         if (rawInitialData && rawInitialData.length > 0) {
-            updateBrandDropdown(rawInitialData);
+            updateDropdowns(rawInitialData);
             allFilteredProducts = filterAndSortProducts(rawInitialData, currentMaxPrice);
             updateSummaryBar(currentMaxPrice, false);
-                renderNextPage();
-            } else {
-                handleSearch();
-            }
-        });
+            renderNextPage();
+        } else {
+            handleSearch();
+        }
+    });
 </script>
